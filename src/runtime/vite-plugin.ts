@@ -132,6 +132,17 @@ export function designflowPlugin(options: DesignflowPluginOptions): Plugin {
       server.watcher.on("add", invalidateAndReload)
       server.watcher.on("unlink", invalidateAndReload)
 
+        // Helper: load flows.ts config via Vite's SSR transform (handles .ts files)
+      async function loadFlowsConfig(): Promise<DesignFlowConfig> {
+        // Invalidate cached module so we always get fresh content
+        const mods = server.moduleGraph.getModulesByFile(flowsPath)
+        if (mods) {
+          for (const m of mods) server.moduleGraph.invalidateModule(m)
+        }
+        const flowsModule = await server.ssrLoadModule(flowsPath)
+        return flowsModule.default
+      }
+
       // API middleware for position persistence
       server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
         if (req.url !== "/__designflow/update-positions" || req.method !== "POST") {
@@ -146,9 +157,7 @@ export function designflowPlugin(options: DesignflowPluginOptions): Plugin {
               positions: Record<string, { x: number; y: number }>
             }
 
-            // Read current config from flows.ts (cache-bust to get fresh content)
-            const flowsModule = await import(`${flowsPath}?t=${Date.now()}`)
-            let config: DesignFlowConfig = flowsModule.default
+            let config = await loadFlowsConfig()
 
             // Update each position
             for (const [screenId, position] of Object.entries(positions)) {
@@ -183,9 +192,7 @@ export function designflowPlugin(options: DesignflowPluginOptions): Plugin {
               viewport: string
             }
 
-            const flowsModule = await import(`${flowsPath}?t=${Date.now()}`)
-            let config: DesignFlowConfig = flowsModule.default
-
+            let config = await loadFlowsConfig()
             config = updateScreenViewport(config, screenId, viewport)
 
             suppressNextFlowsReload = true
@@ -215,9 +222,7 @@ export function designflowPlugin(options: DesignflowPluginOptions): Plugin {
               color: string
             }
 
-            const flowsModule = await import(`${flowsPath}?t=${Date.now()}`)
-            let config: DesignFlowConfig = flowsModule.default
-
+            let config = await loadFlowsConfig()
             config = updateScreenColor(config, screenId, color)
 
             suppressNextFlowsReload = true
