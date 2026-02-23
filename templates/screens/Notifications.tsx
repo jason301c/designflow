@@ -1,165 +1,361 @@
 import { useState } from "react"
 
-type NotifType = "info" | "success" | "warning" | "error"
-
-interface Notification {
+type NotificationItem = {
   id: number
+  type: string
   title: string
-  message: string
+  number?: number
   time: string
-  type: NotifType
-  read: boolean
+  unread: boolean
+  navigate?: string
 }
 
-const initialNotifs: Notification[] = [
-  { id: 1, title: "New team member", message: "Alex Kim accepted your invitation to join the workspace.", time: "2m ago", type: "info", read: false },
-  { id: 2, title: "Payment received", message: "Invoice #1042 for $29.00 has been paid successfully.", time: "1h ago", type: "success", read: false },
-  { id: 3, title: "Storage limit", message: "You've used 80% of your storage. Consider upgrading your plan.", time: "3h ago", type: "warning", read: false },
-  { id: 4, title: "Build failed", message: "Deployment to production failed. Check logs for details.", time: "5h ago", type: "error", read: true },
-  { id: 5, title: "Weekly report", message: "Your weekly analytics report is ready to view.", time: "1d ago", type: "info", read: true },
-  { id: 6, title: "Feature shipped", message: "Dark mode has been deployed to all users.", time: "2d ago", type: "success", read: true },
+type NotificationGroup = {
+  repo: string
+  items: NotificationItem[]
+}
+
+const notificationGroups: NotificationGroup[] = [
+  {
+    repo: "octocat/react-starter",
+    items: [
+      { id: 1, type: "PR", title: "Refactor authentication to use OAuth2", number: 347, time: "3h ago", unread: true, navigate: "pullrequest" },
+      { id: 2, type: "Issue", title: "OAuth2 callback fails on mobile Safari", number: 347, time: "5h ago", unread: true, navigate: "issues" },
+      { id: 3, type: "CI", title: "CI passed on feature/oauth2", time: "6h ago", unread: false },
+    ],
+  },
+  {
+    repo: "octocat/api-toolkit",
+    items: [
+      { id: 4, type: "@", title: "@octocat mentioned you in Add rate limiting", number: 89, time: "1d ago", unread: true },
+      { id: 5, type: "Review", title: "Review requested on Fix pagination", number: 92, time: "2d ago", unread: false },
+    ],
+  },
+  {
+    repo: "octocat/design-system",
+    items: [
+      { id: 6, type: "v", title: "v3.2.0 released", time: "3d ago", unread: false },
+      { id: 7, type: "Issue", title: "Button component needs hover state", number: 45, time: "4d ago", unread: false },
+    ],
+  },
 ]
 
-const typeColors: Record<NotifType, string> = {
-  info: "var(--df-info)",
-  success: "var(--df-success)",
-  warning: "var(--df-warning)",
-  error: "var(--df-error)",
-}
-
 export default function Notifications() {
-  const [notifs, setNotifs] = useState(initialNotifs)
-  const [filter, setFilter] = useState<"all" | "unread">("all")
+  const [filter, setFilter] = useState<"all" | "participating" | "mentions">("all")
+  const [unreadOnly, setUnreadOnly] = useState(false)
 
-  const displayed = filter === "unread" ? notifs.filter((n) => !n.read) : notifs
-  const unreadCount = notifs.filter((n) => !n.read).length
+  const filters = [
+    { key: "all" as const, label: "All" },
+    { key: "participating" as const, label: "Participating" },
+    { key: "mentions" as const, label: "Mentions" },
+  ]
 
-  const markRead = (id: number) => {
-    setNotifs(notifs.map((n) => n.id === id ? { ...n, read: true } : n))
-  }
-
-  const dismiss = (id: number) => {
-    setNotifs(notifs.filter((n) => n.id !== id))
-  }
-
-  const markAllRead = () => {
-    setNotifs(notifs.map((n) => ({ ...n, read: true })))
-  }
+  const filteredGroups = notificationGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !unreadOnly || item.unread),
+    }))
+    .filter((group) => group.items.length > 0)
 
   return (
-    <div style={{ padding: "var(--df-spacing-lg)", background: "var(--df-background)", minHeight: "100vh", fontFamily: "var(--df-font-family)" }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--df-spacing-sm)", marginBottom: "var(--df-spacing-lg)" }}>
+    <div
+      style={{
+        padding: "var(--df-spacing-md)",
+        background: "var(--df-background)",
+        minHeight: "100vh",
+        fontFamily: "var(--df-font-family)",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* A. Mobile Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "var(--df-spacing-md)",
+        }}
+      >
         <button
-          data-df-navigate="dashboard"
           style={{
-            background: "var(--df-surface)", border: "1px solid var(--df-border)", borderRadius: "var(--df-radius-md)",
-            padding: "var(--df-spacing-xs) var(--df-spacing-md)", cursor: "pointer", color: "var(--df-text)", fontSize: "var(--df-body-sm)",
+            width: 32,
+            height: 32,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--df-text)",
+            fontSize: 18,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
           }}
         >
-          Back
+          &#9776;
         </button>
-        <h1 style={{ color: "var(--df-text)", fontSize: "var(--df-heading-h2)", fontWeight: "var(--df-heading-weight)", margin: 0, flex: 1 }}>
+        <h1
+          style={{
+            fontSize: "1.125rem",
+            fontWeight: 600,
+            color: "var(--df-text)",
+            margin: 0,
+          }}
+        >
           Notifications
         </h1>
-        {unreadCount > 0 && (
-          <span style={{
-            padding: "2px var(--df-spacing-sm)", borderRadius: "var(--df-radius-full)",
-            background: "var(--df-primary)", color: "#fff", fontSize: "var(--df-body-xs)", fontWeight: 600,
-          }}>
-            {unreadCount}
-          </span>
-        )}
+        <button
+          style={{
+            width: 32,
+            height: 32,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--df-text-muted)",
+            fontSize: 18,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          &#9881;
+        </button>
       </div>
 
-      {/* Filter + actions */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--df-spacing-md)" }}>
-        <div style={{ display: "flex", gap: "var(--df-spacing-xs)" }}>
-          {(["all", "unread"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
+      {/* B. Filter Pills */}
+      <div
+        style={{
+          display: "flex",
+          gap: "var(--df-spacing-sm)",
+          overflowX: "auto",
+          marginBottom: "var(--df-spacing-md)",
+        }}
+      >
+        {filters.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            style={
+              filter === f.key
+                ? {
+                    background: "var(--df-primary)",
+                    color: "#fff",
+                    borderRadius: "var(--df-radius-full)",
+                    padding: "var(--df-spacing-xs) var(--df-spacing-md)",
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                    border: "none",
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                    fontFamily: "var(--df-font-family)",
+                  }
+                : {
+                    background: "var(--df-surface)",
+                    color: "var(--df-text)",
+                    borderRadius: "var(--df-radius-full)",
+                    padding: "var(--df-spacing-xs) var(--df-spacing-md)",
+                    fontSize: "0.75rem",
+                    border: "1px solid var(--df-border)",
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                    fontFamily: "var(--df-font-family)",
+                  }
+            }
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* C. Unread Toggle */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "var(--df-spacing-lg)",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "0.875rem",
+            color: "var(--df-text)",
+          }}
+        >
+          Only show unread
+        </span>
+        <button
+          onClick={() => setUnreadOnly(!unreadOnly)}
+          style={{
+            width: 40,
+            height: 20,
+            borderRadius: "var(--df-radius-full)",
+            background: unreadOnly ? "var(--df-primary)" : "var(--df-surface-alt)",
+            border: "none",
+            cursor: "pointer",
+            position: "relative",
+            padding: 0,
+            transition: "background 0.2s",
+          }}
+        >
+          <span
+            style={{
+              position: "absolute",
+              top: 2,
+              left: unreadOnly ? 22 : 2,
+              width: 16,
+              height: 16,
+              borderRadius: "var(--df-radius-full)",
+              background: "#fff",
+              boxShadow: "var(--df-shadow-sm)",
+              transition: "left 0.2s",
+            }}
+          />
+        </button>
+      </div>
+
+      {/* D. Notification Groups */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--df-spacing-md)",
+        }}
+      >
+        {filteredGroups.map((group) => (
+          <div key={group.repo}>
+            {/* Repo header */}
+            <div
               style={{
-                padding: "var(--df-spacing-xs) var(--df-spacing-md)", borderRadius: "var(--df-radius-full)",
-                border: filter === f ? "none" : "1px solid var(--df-border)",
-                background: filter === f ? "var(--df-primary)" : "var(--df-surface)",
-                color: filter === f ? "#fff" : "var(--df-text)",
-                cursor: "pointer", fontSize: "var(--df-body-xs)", fontWeight: 500, textTransform: "capitalize",
+                borderTop: "1px solid var(--df-border)",
+                paddingTop: "var(--df-spacing-sm)",
+                marginBottom: "var(--df-spacing-sm)",
               }}
             >
-              {f}
-            </button>
-          ))}
-        </div>
-        {unreadCount > 0 && (
-          <button
-            onClick={markAllRead}
-            style={{ background: "none", border: "none", color: "var(--df-primary)", cursor: "pointer", fontSize: "var(--df-body-sm)" }}
-          >
-            Mark all read
-          </button>
-        )}
-      </div>
-
-      {/* Notification list */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--df-spacing-sm)" }}>
-        {displayed.length === 0 && (
-          <div style={{
-            padding: "var(--df-spacing-xxl) var(--df-spacing-lg)", textAlign: "center",
-            background: "var(--df-surface)", borderRadius: "var(--df-radius-lg)", border: "1px solid var(--df-border)",
-          }}>
-            <p style={{ color: "var(--df-text-muted)", fontSize: "var(--df-body-base)", margin: 0 }}>
-              {filter === "unread" ? "No unread notifications" : "No notifications"}
-            </p>
-          </div>
-        )}
-        {displayed.map((notif) => (
-          <div
-            key={notif.id}
-            onClick={() => markRead(notif.id)}
-            style={{
-              display: "flex", gap: "var(--df-spacing-sm)", padding: "var(--df-spacing-md)",
-              background: notif.read ? "var(--df-surface)" : "var(--df-background)",
-              borderRadius: "var(--df-radius-lg)", border: "1px solid var(--df-border)",
-              boxShadow: notif.read ? "none" : "var(--df-shadow-sm)", cursor: "pointer",
-            }}
-          >
-            {/* Type indicator dot */}
-            <div style={{
-              width: 10, height: 10, borderRadius: "var(--df-radius-full)", background: typeColors[notif.type],
-              marginTop: 5, flexShrink: 0,
-            }} />
-
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "var(--df-spacing-sm)" }}>
-                <p style={{
-                  color: "var(--df-text)", fontSize: "var(--df-body-sm)", fontWeight: notif.read ? 400 : 600,
-                  margin: 0,
-                }}>
-                  {notif.title}
-                </p>
-                <span style={{ color: "var(--df-text-muted)", fontSize: "var(--df-body-xs)", flexShrink: 0 }}>
-                  {notif.time}
-                </span>
-              </div>
-              <p style={{ color: "var(--df-text-muted)", fontSize: "var(--df-body-sm)", margin: 0, marginTop: "var(--df-spacing-xs)" }}>
-                {notif.message}
-              </p>
+              <span
+                style={{
+                  color: "var(--df-text)",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                }}
+              >
+                {group.repo}
+              </span>
             </div>
 
-            {/* Dismiss button */}
-            <button
-              onClick={(e) => { e.stopPropagation(); dismiss(notif.id) }}
+            {/* Notification items */}
+            <div
               style={{
-                background: "none", border: "none", color: "var(--df-text-muted)", cursor: "pointer",
-                fontSize: 16, padding: "0 var(--df-spacing-xs)", flexShrink: 0, lineHeight: 1,
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-              ×
-            </button>
+              {group.items.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    padding: "var(--df-spacing-sm) var(--df-spacing-md)",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "var(--df-spacing-sm)",
+                    cursor: item.navigate ? "pointer" : undefined,
+                  }}
+                  {...(item.navigate ? { "data-df-navigate": item.navigate } : {})}
+                >
+                  {/* Type badge */}
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      background: "var(--df-surface-alt)",
+                      color: "var(--df-text-muted)",
+                      borderRadius: "var(--df-radius-sm)",
+                      padding: "1px 6px",
+                      marginTop: 2,
+                      flexShrink: 0,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {item.type}
+                  </span>
+
+                  {/* Content */}
+                  <div
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        lineHeight: 1.4,
+                        fontWeight: item.unread ? 600 : 400,
+                        color: "var(--df-text)",
+                        margin: 0,
+                      }}
+                    >
+                      {item.title}
+                      {item.number != null && (
+                        <span
+                          style={{
+                            color: "var(--df-text-muted)",
+                            fontWeight: 400,
+                          }}
+                        >
+                          {" "}
+                          #{item.number}
+                        </span>
+                      )}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--df-text-muted)",
+                        marginTop: 2,
+                        margin: 0,
+                        paddingTop: 2,
+                      }}
+                    >
+                      {item.time}
+                    </p>
+                  </div>
+
+                  {/* Unread dot */}
+                  {item.unread && (
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "var(--df-radius-full)",
+                        background: "var(--df-primary)",
+                        flexShrink: 0,
+                        marginTop: 6,
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
+
+      {/* E. Footer */}
+      <button
+        style={{
+          width: "100%",
+          marginTop: "var(--df-spacing-lg)",
+          padding: "var(--df-spacing-sm) var(--df-spacing-md)",
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          color: "var(--df-text)",
+          border: "1px solid var(--df-border)",
+          borderRadius: "var(--df-radius-md)",
+          background: "var(--df-surface)",
+          cursor: "pointer",
+          fontFamily: "var(--df-font-family)",
+        }}
+      >
+        Mark all as read
+      </button>
     </div>
   )
 }

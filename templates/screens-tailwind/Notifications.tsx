@@ -1,144 +1,161 @@
 import { useState } from "react"
 
-type NotifType = "info" | "success" | "warning" | "error"
-
-interface Notification {
+type NotificationItem = {
   id: number
+  type: string
   title: string
-  message: string
+  number?: number
   time: string
-  type: NotifType
-  read: boolean
+  unread: boolean
+  navigate?: string
 }
 
-const initialNotifs: Notification[] = [
-  { id: 1, title: "New team member", message: "Alex Kim accepted your invitation to join the workspace.", time: "2m ago", type: "info", read: false },
-  { id: 2, title: "Payment received", message: "Invoice #1042 for $29.00 has been paid successfully.", time: "1h ago", type: "success", read: false },
-  { id: 3, title: "Storage limit", message: "You've used 80% of your storage. Consider upgrading your plan.", time: "3h ago", type: "warning", read: false },
-  { id: 4, title: "Build failed", message: "Deployment to production failed. Check logs for details.", time: "5h ago", type: "error", read: true },
-  { id: 5, title: "Weekly report", message: "Your weekly analytics report is ready to view.", time: "1d ago", type: "info", read: true },
-  { id: 6, title: "Feature shipped", message: "Dark mode has been deployed to all users.", time: "2d ago", type: "success", read: true },
+type NotificationGroup = {
+  repo: string
+  items: NotificationItem[]
+}
+
+const notificationGroups: NotificationGroup[] = [
+  {
+    repo: "octocat/react-starter",
+    items: [
+      { id: 1, type: "PR", title: "Refactor authentication to use OAuth2", number: 347, time: "3h ago", unread: true, navigate: "pullrequest" },
+      { id: 2, type: "Issue", title: "OAuth2 callback fails on mobile Safari", number: 347, time: "5h ago", unread: true, navigate: "issues" },
+      { id: 3, type: "CI", title: "CI passed on feature/oauth2", time: "6h ago", unread: false },
+    ],
+  },
+  {
+    repo: "octocat/api-toolkit",
+    items: [
+      { id: 4, type: "@", title: "@octocat mentioned you in Add rate limiting", number: 89, time: "1d ago", unread: true },
+      { id: 5, type: "Review", title: "Review requested on Fix pagination", number: 92, time: "2d ago", unread: false },
+    ],
+  },
+  {
+    repo: "octocat/design-system",
+    items: [
+      { id: 6, type: "v", title: "v3.2.0 released", time: "3d ago", unread: false },
+      { id: 7, type: "Issue", title: "Button component needs hover state", number: 45, time: "4d ago", unread: false },
+    ],
+  },
 ]
 
-const typeColors: Record<NotifType, string> = {
-  info: "bg-info",
-  success: "bg-success",
-  warning: "bg-warning",
-  error: "bg-error",
-}
-
 export default function Notifications() {
-  const [notifs, setNotifs] = useState(initialNotifs)
-  const [filter, setFilter] = useState<"all" | "unread">("all")
+  const [filter, setFilter] = useState<"all" | "participating" | "mentions">("all")
+  const [unreadOnly, setUnreadOnly] = useState(false)
 
-  const displayed = filter === "unread" ? notifs.filter((n) => !n.read) : notifs
-  const unreadCount = notifs.filter((n) => !n.read).length
+  const filters = [
+    { key: "all" as const, label: "All" },
+    { key: "participating" as const, label: "Participating" },
+    { key: "mentions" as const, label: "Mentions" },
+  ]
 
-  const markRead = (id: number) => {
-    setNotifs(notifs.map((n) => n.id === id ? { ...n, read: true } : n))
-  }
-
-  const dismiss = (id: number) => {
-    setNotifs(notifs.filter((n) => n.id !== id))
-  }
-
-  const markAllRead = () => {
-    setNotifs(notifs.map((n) => ({ ...n, read: true })))
-  }
+  const filteredGroups = notificationGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !unreadOnly || item.unread),
+    }))
+    .filter((group) => group.items.length > 0)
 
   return (
-    <div className="p-lg bg-background min-h-screen font-sans">
-      {/* Header */}
-      <div className="flex items-center gap-sm mb-lg">
-        <button
-          data-df-navigate="dashboard"
-          className="bg-surface border border-border rounded-md py-xs px-md cursor-pointer text-text text-sm"
-        >
-          Back
+    <div className="p-md bg-background min-h-screen font-sans">
+      {/* A. Mobile Header */}
+      <div className="flex items-center justify-between mb-md">
+        <button className="w-8 h-8 flex items-center justify-center text-text text-lg">
+          &#9776;
         </button>
-        <h1 className="text-text text-xl font-semibold m-0 flex-1">
-          Notifications
-        </h1>
-        {unreadCount > 0 && (
-          <span className="py-[2px] px-sm rounded-full bg-primary text-white text-xs font-semibold">
-            {unreadCount}
-          </span>
-        )}
+        <h1 className="text-lg font-semibold text-text">Notifications</h1>
+        <button className="w-8 h-8 flex items-center justify-center text-text-muted text-lg">
+          &#9881;
+        </button>
       </div>
 
-      {/* Filter + actions */}
-      <div className="flex justify-between items-center mb-md">
-        <div className="flex gap-xs">
-          {(["all", "unread"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`py-xs px-md rounded-full cursor-pointer text-xs font-medium capitalize ${
-                filter === f
-                  ? "border-none bg-primary text-white"
-                  : "border border-border bg-surface text-text"
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-        {unreadCount > 0 && (
+      {/* B. Filter Pills */}
+      <div className="flex gap-sm overflow-x-auto mb-md">
+        {filters.map((f) => (
           <button
-            onClick={markAllRead}
-            className="bg-transparent border-none text-primary cursor-pointer text-sm"
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={
+              filter === f.key
+                ? "bg-primary text-white rounded-full py-xs px-md text-xs font-medium border-none whitespace-nowrap"
+                : "bg-surface border border-border text-text rounded-full py-xs px-md text-xs whitespace-nowrap"
+            }
           >
-            Mark all read
+            {f.label}
           </button>
-        )}
+        ))}
       </div>
 
-      {/* Notification list */}
-      <div className="flex flex-col gap-sm">
-        {displayed.length === 0 && (
-          <div className="py-xxl px-lg text-center bg-surface rounded-lg border border-border">
-            <p className="text-text-muted text-base m-0">
-              {filter === "unread" ? "No unread notifications" : "No notifications"}
-            </p>
-          </div>
-        )}
-        {displayed.map((notif) => (
-          <div
-            key={notif.id}
-            onClick={() => markRead(notif.id)}
-            className={`flex gap-sm p-md rounded-lg border border-border cursor-pointer ${
-              notif.read
-                ? "bg-surface shadow-none"
-                : "bg-background shadow-sm"
+      {/* Unread Toggle */}
+      <div className="flex items-center justify-between mb-lg">
+        <span className="text-sm text-text">Only show unread</span>
+        <button
+          onClick={() => setUnreadOnly(!unreadOnly)}
+          className={`w-10 h-5 rounded-full relative transition-colors ${
+            unreadOnly ? "bg-primary" : "bg-surface-alt"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
+              unreadOnly ? "translate-x-5" : "translate-x-0.5"
             }`}
-          >
-            {/* Type indicator dot */}
-            <div className={`size-[10px] rounded-full mt-[5px] shrink-0 ${typeColors[notif.type]}`} />
+          />
+        </button>
+      </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-start gap-sm">
-                <p className={`text-text text-sm m-0 ${notif.read ? "font-normal" : "font-semibold"}`}>
-                  {notif.title}
-                </p>
-                <span className="text-text-muted text-xs shrink-0">
-                  {notif.time}
-                </span>
-              </div>
-              <p className="text-text-muted text-sm m-0 mt-xs">
-                {notif.message}
-              </p>
+      {/* C. Notification Groups */}
+      <div className="flex flex-col gap-md">
+        {filteredGroups.map((group) => (
+          <div key={group.repo}>
+            {/* Repo header */}
+            <div className="border-t border-border pt-sm mb-sm">
+              <span className="text-text text-sm font-semibold">{group.repo}</span>
             </div>
 
-            {/* Dismiss button */}
-            <button
-              onClick={(e) => { e.stopPropagation(); dismiss(notif.id) }}
-              className="bg-transparent border-none text-text-muted cursor-pointer text-[16px] px-xs shrink-0 leading-none"
-            >
-              ×
-            </button>
+            {/* Notification items */}
+            <div className="flex flex-col">
+              {group.items.map((item) => (
+                <div
+                  key={item.id}
+                  className="py-sm px-md flex items-start gap-sm"
+                  {...(item.navigate ? { "data-df-navigate": item.navigate } : {})}
+                >
+                  {/* Type badge */}
+                  <span className="text-xs bg-surface-alt text-text-muted rounded px-[6px] py-[1px] mt-[2px] shrink-0">
+                    {item.type}
+                  </span>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`text-sm leading-snug ${
+                        item.unread ? "font-semibold text-text" : "text-text"
+                      }`}
+                    >
+                      {item.title}
+                      {item.number != null && (
+                        <span className="text-text-muted font-normal"> #{item.number}</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-text-muted mt-[2px]">{item.time}</p>
+                  </div>
+
+                  {/* Unread dot */}
+                  {item.unread && (
+                    <span className="w-2 h-2 rounded-full bg-primary shrink-0 mt-[6px]" />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
+
+      {/* D. Footer */}
+      <button className="w-full mt-lg py-sm px-md text-sm font-medium text-text border border-border rounded-md bg-surface hover:bg-surface-alt transition-colors">
+        Mark all as read
+      </button>
     </div>
   )
 }

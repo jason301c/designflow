@@ -31,6 +31,7 @@ When the dark toggle is activated, the screen wrapper gets `data-df-color-scheme
 ## Registering Screens
 - Add new screens to `flows.ts` with a unique ID, title, file path, and canvas position
 - Add edges to define navigation flow between screens
+- **Screen IDs must match the lowercased filename (without `.tsx`)**. The screen scanner generates IDs by stripping the extension and lowercasing: `Explore.tsx` → `explore`, `Pullrequest.tsx` → `pullrequest`. The ID you use in `flows.ts` (and in `data-df-navigate` attributes and edge definitions) must match exactly. **Do not use hyphens or other characters that aren't in the filename** — e.g. `"pull-request"` will NOT match a file named `PullRequest.tsx` (scanner produces `pullrequest`). If the IDs don't match, the screen will show "No preview".
 
 ## Theme
 - All design tokens are in `designflow.theme.ts`

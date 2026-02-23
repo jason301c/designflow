@@ -3,43 +3,55 @@ import type { DesignFlowConfig } from "designflow"
 const config: DesignFlowConfig = {
   name: "My Designflow Project",
   screens: {
-    login: {
-      title: "Login",
-      file: "./screens/Login.tsx",
-      position: { x: 0, y: 250 },
+    explore: {
+      title: "Explore",
+      file: "./screens/Explore.tsx",
+      position: { x: 0, y: 0 },
       viewport: "mobile",
-    },
-    dashboard: {
-      title: "Dashboard",
-      file: "./screens/Dashboard.tsx",
-      position: { x: 600, y: 0 },
-      viewport: "desktop",
-    },
-    profile: {
-      title: "Profile",
-      file: "./screens/Profile.tsx",
-      position: { x: 1400, y: -100 },
-      viewport: "tablet",
-    },
-    settings: {
-      title: "Settings",
-      file: "./screens/Settings.tsx",
-      position: { x: 1400, y: 400 },
-      viewport: "desktop",
     },
     notifications: {
       title: "Notifications",
       file: "./screens/Notifications.tsx",
-      position: { x: 2100, y: 250 },
+      position: { x: 0, y: 520 },
+      viewport: "mobile",
+    },
+    repo: {
+      title: "Repository",
+      file: "./screens/Repo.tsx",
+      position: { x: 300, y: 0 },
+      viewport: "mobile",
+    },
+    pullrequest: {
+      title: "Pull Request",
+      file: "./screens/Pullrequest.tsx",
+      position: { x: 300, y: 520 },
+      viewport: "mobile",
+    },
+    profile: {
+      title: "Profile",
+      file: "./screens/Profile.tsx",
+      position: { x: 600, y: 0 },
+      viewport: "mobile",
+    },
+    issues: {
+      title: "Issues",
+      file: "./screens/Issues.tsx",
+      position: { x: 600, y: 520 },
       viewport: "mobile",
     },
   },
 
   edges: [
-    { from: "login", to: "dashboard", label: "Sign in" },
-    { from: "dashboard", to: "settings", label: "Settings" },
-    { from: "dashboard", to: "profile", label: "Avatar" },
-    { from: "dashboard", to: "notifications", label: "Notifications" },
+    { from: "explore", to: "repo", label: "Repo" },
+    { from: "repo", to: "pullrequest", label: "Pull requests" },
+    { from: "repo", to: "issues", label: "Issues" },
+    { from: "pullrequest", to: "repo", label: "Back to repo" },
+    { from: "issues", to: "repo", label: "Back to repo" },
+    { from: "repo", to: "profile", label: "Author" },
+    { from: "profile", to: "repo", label: "Pinned repo" },
+    { from: "notifications", to: "pullrequest", label: "PR notification" },
+    { from: "notifications", to: "issues", label: "Issue notification" },
+    { from: "profile", to: "notifications", label: "Notifications" },
   ],
 }
 
