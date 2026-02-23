@@ -45,6 +45,9 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
       <Handle type="target" position={Position.Left} id="target-left" />
       <div
         style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
           padding: "4px 8px",
           fontSize: "12px",
           fontWeight: 600,
@@ -54,37 +57,35 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
         }}
       >
         {data.title}
-      </div>
-      <div
-        data-testid="viewport-toggle"
-        style={{
-          display: "flex",
-          gap: "4px",
-          marginBottom: "8px",
-          padding: "0 4px",
-        }}
-      >
-        {viewportLabels.map(({ key, label }) => (
-          <button
-            key={key}
-            aria-label={key}
-            data-active={String(activeViewport === key)}
-            onClick={() => setActiveViewport(key)}
-            style={{
-              border: "1px solid #e2e8f0",
-              background: activeViewport === key ? "#f1f5f9" : "transparent",
-              fontWeight: activeViewport === key ? 600 : 400,
-              cursor: "pointer",
-              padding: "2px 8px",
-              borderRadius: 9999,
-              fontSize: 10,
-              lineHeight: 1.4,
-              color: "#334155",
-            }}
-          >
-            {label}
-          </button>
-        ))}
+        <div
+          data-testid="viewport-toggle"
+          style={{
+            display: "flex",
+            gap: "4px",
+          }}
+        >
+          {viewportLabels.map(({ key, label }) => (
+            <button
+              key={key}
+              aria-label={key}
+              data-active={String(activeViewport === key)}
+              onClick={() => setActiveViewport(key)}
+              style={{
+                border: "1px solid #e2e8f0",
+                background: activeViewport === key ? "#f1f5f9" : "transparent",
+                fontWeight: activeViewport === key ? 600 : 400,
+                cursor: "pointer",
+                padding: "2px 8px",
+                borderRadius: 9999,
+                fontSize: 10,
+                lineHeight: 1.4,
+                color: "#334155",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       <div
         data-testid="screen-thumbnail"
