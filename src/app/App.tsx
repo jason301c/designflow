@@ -28,7 +28,14 @@ export function App({ config, screens, inferredEdges, theme }: AppProps) {
   return (
     <ReactFlowProvider>
       <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
-        <Canvas config={config} screens={screens} onScreenSelect={setViewingScreen} focusNodeId={focusNodeId} inferredEdges={inferredEdges} />
+        <Canvas
+          config={config}
+          screens={screens}
+          onScreenSelect={setViewingScreen}
+          focusNodeId={focusNodeId}
+          inferredEdges={inferredEdges}
+          onThemeToggle={theme ? () => setIsThemePanelOpen(!isThemePanelOpen) : undefined}
+        />
         {viewingScreen && viewingConfig && screens[viewingScreen] && (
           <Viewer
             screenId={viewingScreen}
@@ -38,28 +45,6 @@ export function App({ config, screens, inferredEdges, theme }: AppProps) {
             onNavigate={setViewingScreen}
             config={config}
           />
-        )}
-        {theme && (
-          <button
-            onClick={() => setIsThemePanelOpen(!isThemePanelOpen)}
-            aria-label="Theme"
-            style={{
-              position: "fixed",
-              top: 16,
-              right: 16,
-              zIndex: 900,
-              padding: "8px 16px",
-              background: "#fff",
-              border: "1px solid #e2e8f0",
-              borderRadius: 8,
-              cursor: "pointer",
-              fontWeight: 500,
-              fontSize: "0.875rem",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            }}
-          >
-            Theme
-          </button>
         )}
         {isThemePanelOpen && theme && (
           <ThemePanel theme={theme} onClose={() => setIsThemePanelOpen(false)} />

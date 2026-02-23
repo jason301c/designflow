@@ -1,6 +1,10 @@
 import { useReactFlow } from "@xyflow/react"
 
-export function Toolbar() {
+interface ToolbarProps {
+  onThemeToggle?: () => void
+}
+
+export function Toolbar({ onThemeToggle }: ToolbarProps) {
   const { zoomIn, zoomOut, fitView } = useReactFlow()
 
   return (
@@ -31,6 +35,14 @@ export function Toolbar() {
       <button aria-label="Fit view" onClick={() => fitView()} style={btnStyle}>
         ⊞
       </button>
+      {onThemeToggle && (
+        <>
+          <div style={{ width: 1, height: 18, background: "#e2e8f0" }} />
+          <button aria-label="Theme" onClick={onThemeToggle} style={btnStyle}>
+            Theme
+          </button>
+        </>
+      )}
     </div>
   )
 }

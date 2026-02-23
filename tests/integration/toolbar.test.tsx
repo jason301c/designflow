@@ -60,4 +60,21 @@ describe("Toolbar", () => {
     render(<Toolbar />)
     expect(screen.getByTestId("toolbar")).toBeInTheDocument()
   })
+
+  it("should render Theme button when onThemeToggle is provided", () => {
+    render(<Toolbar onThemeToggle={vi.fn()} />)
+    expect(screen.getByRole("button", { name: /theme/i })).toBeInTheDocument()
+  })
+
+  it("should not render Theme button when onThemeToggle is not provided", () => {
+    render(<Toolbar />)
+    expect(screen.queryByRole("button", { name: /theme/i })).not.toBeInTheDocument()
+  })
+
+  it("should call onThemeToggle when Theme button is clicked", () => {
+    const onThemeToggle = vi.fn()
+    render(<Toolbar onThemeToggle={onThemeToggle} />)
+    fireEvent.click(screen.getByRole("button", { name: /theme/i }))
+    expect(onThemeToggle).toHaveBeenCalledOnce()
+  })
 })

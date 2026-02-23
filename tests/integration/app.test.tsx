@@ -5,13 +5,14 @@ import type { DesignFlowConfig, DesignFlowTheme } from "../../src/types"
 
 // Mock React Flow and its provider
 vi.mock("@xyflow/react", () => {
-  const ReactFlow = ({ nodes }: any) => (
+  const ReactFlow = ({ nodes, children }: any) => (
     <div data-testid="react-flow">
       {nodes?.map((n: any) => (
         <div key={n.id} data-testid={`node-${n.id}`} onDoubleClick={() => n.data?.onSelect?.(n.id)}>
           {n.data?.title}
         </div>
       ))}
+      {children}
     </div>
   )
   return {
@@ -26,7 +27,7 @@ vi.mock("@xyflow/react", () => {
     MiniMap: () => <div />,
     useNodesState: (initial: any) => [initial, vi.fn(), vi.fn()],
     useEdgesState: (initial: any) => [initial, vi.fn(), vi.fn()],
-    useReactFlow: () => ({ fitView: vi.fn(), setCenter: vi.fn() }),
+    useReactFlow: () => ({ fitView: vi.fn(), zoomIn: vi.fn(), zoomOut: vi.fn(), setCenter: vi.fn() }),
   }
 })
 

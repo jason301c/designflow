@@ -127,6 +127,18 @@ describe("Canvas", () => {
     render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} />)
     expect(screen.getByTestId("toolbar")).toBeInTheDocument()
   })
+
+  it("should pass onThemeToggle to Toolbar", () => {
+    const onThemeToggle = vi.fn()
+    render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} onThemeToggle={onThemeToggle} />)
+    // Theme button should be rendered inside toolbar when onThemeToggle is provided
+    expect(screen.getByRole("button", { name: /theme/i })).toBeInTheDocument()
+  })
+
+  it("should not render Theme button when onThemeToggle is not provided", () => {
+    render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} />)
+    expect(screen.queryByRole("button", { name: /theme/i })).not.toBeInTheDocument()
+  })
 })
 
 describe("Canvas — inferred edges merging", () => {
