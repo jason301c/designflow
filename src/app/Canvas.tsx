@@ -258,8 +258,15 @@ function LogoBadge({ dark }: { dark?: boolean }) {
           userSelect: "none",
         }}
       >
-        <span style={{ opacity: 0.5, marginRight: 1 }}>design</span>
-        <span>flow</span>
+        <a
+          href="https://designflow.cc"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center" }}
+        >
+          <span style={{ opacity: 0.5, marginRight: 1 }}>design</span>
+          <span>flow</span>
+        </a>
         <div style={{ width: 1, height: 16, background: dark ? "#444" : "#e2e8f0", margin: "0 8px" }} />
         <button
           data-testid="about-button"
