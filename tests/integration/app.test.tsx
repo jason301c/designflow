@@ -1,12 +1,13 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import { App } from "../../src/app/App"
+import { DEFAULT_CANVAS_SETTINGS } from "../../src/types"
 import type { DesignFlowConfig } from "../../src/types"
 
 // Mock React Flow and its provider
 vi.mock("@xyflow/react", () => {
-  const ReactFlow = ({ nodes, children }: any) => (
-    <div data-testid="react-flow">
+  const ReactFlow = ({ nodes, children, defaultEdgeOptions }: any) => (
+    <div data-testid="react-flow" data-default-edge-options={JSON.stringify(defaultEdgeOptions)}>
       {nodes?.map((n: any) => (
         <div key={n.id} data-testid={`node-${n.id}`} onDoubleClick={() => n.data?.onSelect?.(n.id)}>
           {n.data?.title}
@@ -25,6 +26,8 @@ vi.mock("@xyflow/react", () => {
     getSmoothStepPath: () => ["M0,0", 0, 0],
     MarkerType: { ArrowClosed: "arrowclosed" },
     MiniMap: () => <div />,
+    Background: ({ variant, color }: any) => <div data-testid="background" data-variant={variant} data-color={color} />,
+    BackgroundVariant: { Lines: "lines", Dots: "dots", Cross: "cross" },
     useNodesState: (initial: any) => [initial, vi.fn(), vi.fn()],
     useEdgesState: (initial: any) => [initial, vi.fn(), vi.fn()],
     useReactFlow: () => ({ fitView: vi.fn(), zoomIn: vi.fn(), zoomOut: vi.fn(), setCenter: vi.fn() }),
@@ -43,6 +46,10 @@ function MockScreen() {
 }
 
 describe("App", () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it("should render canvas", () => {
     render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
     expect(screen.getByTestId("react-flow")).toBeInTheDocument()
@@ -64,18 +71,63 @@ describe("App", () => {
     expect(screen.getByTestId("react-flow")).toBeInTheDocument()
   })
 
-  describe("canvas appearance", () => {
-    it("should render appearance toggle button", () => {
+  describe("canvas settings", () => {
+    it("should render settings button", () => {
       render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
-      expect(screen.getByRole("button", { name: /appearance/i })).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: /settings/i })).toBeInTheDocument()
     })
 
-    it("should toggle appearance when button is clicked", () => {
+    it("should use default settings initially", () => {
       render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
-      const btn = screen.getByRole("button", { name: /appearance/i })
-      fireEvent.click(btn)
+      // Default is light mode, so no dark bg
       const wrapper = screen.getByTestId("react-flow").parentElement as HTMLElement
-      expect(wrapper.style.background).toContain("30, 41, 59")
+      expect(wrapper.style.background).not.toContain("0, 0, 0")
+    })
+
+    it("should toggle to dark mode via settings popover", () => {
+      render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
+      fireEvent.click(screen.getByRole("button", { name: /settings/i }))
+      fireEvent.click(screen.getByRole("button", { name: /dark/i }))
+      const wrapper = screen.getByTestId("react-flow").parentElement as HTMLElement
+      expect(wrapper.style.background).toContain("0, 0, 0")
+    })
+
+    it("should persist settings to localStorage as JSON", () => {
+      render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
+      fireEvent.click(screen.getByRole("button", { name: /settings/i }))
+      fireEvent.click(screen.getByRole("button", { name: /dark/i }))
+      const stored = JSON.parse(localStorage.getItem("df-appearance") || "{}")
+      expect(stored.appearance).toBe("dark")
+    })
+
+    it("should restore settings from localStorage", () => {
+      const customSettings = { ...DEFAULT_CANVAS_SETTINGS, appearance: "dark" }
+      localStorage.setItem("df-appearance", JSON.stringify(customSettings))
+      render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
+      const wrapper = screen.getByTestId("react-flow").parentElement as HTMLElement
+      expect(wrapper.style.background).toContain("0, 0, 0")
+    })
+
+    it("should fall back to defaults when localStorage has invalid JSON", () => {
+      localStorage.setItem("df-appearance", "not-json")
+      render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
+      const wrapper = screen.getByTestId("react-flow").parentElement as HTMLElement
+      expect(wrapper.style.background).not.toContain("0, 0, 0")
+    })
+
+    it("should render background with grid by default", () => {
+      render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
+      const bg = screen.getByTestId("background")
+      expect(bg.getAttribute("data-variant")).toBe("lines")
+    })
+
+    it("should update accent color via settings", () => {
+      render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
+      fireEvent.click(screen.getByRole("button", { name: /settings/i }))
+      fireEvent.click(screen.getByTestId("accent-#dc2626"))
+      const rfEl = screen.getByTestId("react-flow")
+      const opts = JSON.parse(rfEl.getAttribute("data-default-edge-options") || "{}")
+      expect(opts.markerEnd.color).toBe("#dc2626")
     })
   })
 })

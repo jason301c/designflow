@@ -2,19 +2,25 @@ import { useState } from "react"
 import { ReactFlowProvider } from "@xyflow/react"
 import { Canvas } from "./Canvas"
 import { Viewer } from "./Viewer"
-import type { DesignFlowConfig, EdgeConfig, CanvasAppearance } from "../types"
+import { DEFAULT_CANVAS_SETTINGS } from "../types"
+import type { DesignFlowConfig, EdgeConfig, CanvasSettings } from "../types"
 import "@xyflow/react/dist/style.css"
 
-const DF_APPEARANCE_KEY = "df-appearance"
+const DF_SETTINGS_KEY = "df-appearance"
 
-function getInitialAppearance(): CanvasAppearance {
+function getInitialSettings(): CanvasSettings {
   try {
-    const stored = localStorage.getItem(DF_APPEARANCE_KEY)
-    if (stored === "dark" || stored === "light") return stored
+    const stored = localStorage.getItem(DF_SETTINGS_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (parsed && typeof parsed === "object" && "appearance" in parsed) {
+        return { ...DEFAULT_CANVAS_SETTINGS, ...parsed }
+      }
+    }
   } catch {
-    // localStorage unavailable
+    // localStorage unavailable or invalid JSON
   }
-  return "light"
+  return { ...DEFAULT_CANVAS_SETTINGS }
 }
 
 interface AppProps {
@@ -26,7 +32,7 @@ interface AppProps {
 export function App({ config, screens, inferredEdges }: AppProps) {
   const [viewingScreen, setViewingScreen] = useState<string | null>(null)
   const [focusNodeId, setFocusNodeId] = useState<string | null>(null)
-  const [appearance, setAppearance] = useState<CanvasAppearance>(getInitialAppearance)
+  const [settings, setSettings] = useState<CanvasSettings>(getInitialSettings)
 
   const viewingConfig = viewingScreen ? config.screens[viewingScreen] : null
 
@@ -35,10 +41,10 @@ export function App({ config, screens, inferredEdges }: AppProps) {
     setViewingScreen(null)
   }
 
-  const handleAppearanceChange = (a: CanvasAppearance) => {
-    setAppearance(a)
+  const handleSettingsChange = (newSettings: CanvasSettings) => {
+    setSettings(newSettings)
     try {
-      localStorage.setItem(DF_APPEARANCE_KEY, a)
+      localStorage.setItem(DF_SETTINGS_KEY, JSON.stringify(newSettings))
     } catch {
       // localStorage unavailable
     }
@@ -53,8 +59,8 @@ export function App({ config, screens, inferredEdges }: AppProps) {
           onScreenSelect={setViewingScreen}
           focusNodeId={focusNodeId}
           inferredEdges={inferredEdges}
-          appearance={appearance}
-          onAppearanceChange={handleAppearanceChange}
+          settings={settings}
+          onSettingsChange={handleSettingsChange}
         />
         {viewingScreen && viewingConfig && screens[viewingScreen] && (
           <Viewer
