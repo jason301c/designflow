@@ -1,6 +1,6 @@
 {
   "name": "designflow",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "An open-source wireframe canvas for developers. Design screens, map flows, then ship real code.",
   "license": "MIT",
   "type": "module",
