@@ -1,5 +1,6 @@
 import fs from "fs"
 import path from "path"
+import { createRequire } from "module"
 import { fileURLToPath } from "url"
 import { createServer } from "vite"
 import tailwindcss from "@tailwindcss/vite"
@@ -85,9 +86,29 @@ export async function runDev(options: DevOptions): Promise<void> {
 
   const html = buildDevHtml({ hasStylesCSS, projectName })
 
+  // Create a require function anchored to designflow's package root so we can
+  // resolve dependencies (react, tailwindcss, etc.) from our own node_modules
+  // even when Vite's root is the user's wireframes/ directory
+  const pkgRequire = createRequire(path.join(pkgRoot, "package.json"))
+
   const server = await createServer({
     root: resolvedDir,
     plugins: [
+      // Fallback resolver: if a bare import can't be found from the wireframes
+      // dir, resolve it from designflow's own node_modules
+      {
+        name: "designflow-resolve",
+        enforce: "pre",
+        resolveId(id) {
+          // Only handle bare module specifiers (not relative, absolute, or virtual)
+          if (id.startsWith(".") || id.startsWith("/") || id.startsWith("\0") || id.startsWith("virtual:")) return
+          try {
+            return pkgRequire.resolve(id)
+          } catch {
+            // Not in our node_modules either — let Vite handle it
+          }
+        },
+      },
       tailwindcss(),
       designflowPlugin({ dir: resolvedDir }),
       {
