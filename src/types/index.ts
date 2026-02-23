@@ -1,6 +1,31 @@
 export type Viewport = "desktop" | "tablet" | "mobile"
 export type ColorScheme = "light" | "dark"
 export type CanvasAppearance = "light" | "dark"
+export type BackgroundStyle = "grid" | "dots" | "blank"
+export type LineStyle = "solid" | "dashed" | "dotted"
+
+export interface CanvasSettings {
+  appearance: CanvasAppearance
+  accentColor: string
+  backgroundStyle: BackgroundStyle
+  lineStyle: LineStyle
+}
+
+export const DEFAULT_CANVAS_SETTINGS: CanvasSettings = {
+  appearance: "light",
+  accentColor: "#2563eb",
+  backgroundStyle: "grid",
+  lineStyle: "solid",
+}
+
+export const ACCENT_COLORS = [
+  "#2563eb", // blue (default)
+  "#7c3aed", // purple
+  "#059669", // green
+  "#dc2626", // red
+  "#ea580c", // orange
+  "#db2777", // pink
+]
 
 export const VIEWPORT_RESOLUTIONS: Record<Viewport, { width: number; height: number }> = {
   desktop: { width: 1440, height: 900 },

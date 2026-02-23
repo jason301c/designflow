@@ -6,7 +6,12 @@ export type {
   Viewport,
   ColorScheme,
   CanvasAppearance,
+  BackgroundStyle,
+  LineStyle,
+  CanvasSettings,
 } from "./types"
+
+export { DEFAULT_CANVAS_SETTINGS, ACCENT_COLORS } from "./types"
 
 // Runtime
 export { scanScreens, extractNavigationTargets } from "./runtime/screen-scanner"
