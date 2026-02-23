@@ -38,6 +38,7 @@ function configToNodes(
       onSelect: onScreenSelect,
       component: screens?.[id],
       viewport: screen.viewport,
+      color: screen.color,
       accentColor,
       colorScheme,
       projectName,

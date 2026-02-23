@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { Handle, Position } from "@xyflow/react"
 import type { NodeProps, Node } from "@xyflow/react"
 import type { ComponentType } from "react"
 import type { Viewport, ColorScheme } from "../types"
-import { getScreenResolution } from "../types"
+import { getScreenResolution, ACCENT_COLORS } from "../types"
 import { exportScreenPng } from "./export-png"
 
 export type ScreenNodeData = {
@@ -14,6 +14,7 @@ export type ScreenNodeData = {
   viewport?: Viewport
   colorScheme?: ColorScheme
   accentColor?: string
+  color?: string
   projectName?: string
 }
 
@@ -58,6 +59,9 @@ const viewportIcons: Record<Viewport, () => React.ReactElement> = {
 export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
   const ScreenComponent = data.component
   const [activeViewport, setActiveViewport] = useState<Viewport>(data.viewport ?? "desktop")
+  const [activeColor, setActiveColor] = useState<string | undefined>(data.color)
+  const [colorPickerOpen, setColorPickerOpen] = useState(false)
+  const colorPickerRef = useRef<HTMLDivElement>(null)
 
   const handleViewportChange = (viewport: Viewport) => {
     setActiveViewport(viewport)
@@ -67,18 +71,45 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
       body: JSON.stringify({ screenId: data.screenId, viewport }),
     }).catch(() => {})
   }
+
+  const handleColorChange = (color: string) => {
+    setActiveColor(color)
+    setColorPickerOpen(false)
+    fetch("/__designflow/update-color", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ screenId: data.screenId, color }),
+    }).catch(() => {})
+  }
+
+  useEffect(() => {
+    if (!colorPickerOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as HTMLElement)) {
+        setColorPickerOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [colorPickerOpen])
+
   const [activeColorScheme, setActiveColorScheme] = useState<ColorScheme>(data.colorScheme ?? "light")
+
+  useEffect(() => {
+    if (data.color !== undefined) setActiveColor(data.color)
+  }, [data.color])
 
   useEffect(() => {
     if (data.colorScheme) setActiveColorScheme(data.colorScheme)
   }, [data.colorScheme])
 
+  const pillColor = activeColor ?? data.accentColor
   const { width: fullWidth, height: fullHeight } = getScreenResolution(activeViewport)
   const scale = MAX_THUMBNAIL_DIM / Math.max(fullWidth, fullHeight)
   const thumbnailWidth = Math.round(fullWidth * scale)
   const thumbnailHeight = Math.round(fullHeight * scale)
   const isDark = activeColorScheme === "dark"
-  const hasAccent = !!data.accentColor
+  const hasAccent = !!pillColor
   const pillTextColor = hasAccent ? "#fff" : "#334155"
 
   return (
@@ -98,7 +129,7 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
           gap: "6px",
           padding: "6px 10px",
           marginBottom: "6px",
-          background: hasAccent ? data.accentColor! : "#fff",
+          background: hasAccent ? pillColor! : "#fff",
           border: hasAccent ? "none" : "1px solid #e2e8f0",
           borderRadius: 9999,
         }}
@@ -115,6 +146,65 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
         >
           {data.title}
         </span>
+
+        {/* Color picker */}
+        <div ref={colorPickerRef} style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          <button
+            data-testid="color-picker-button"
+            aria-label="Pick screen color"
+            onClick={(e) => {
+              e.stopPropagation()
+              setColorPickerOpen(!colorPickerOpen)
+            }}
+            style={{
+              width: 16,
+              height: 16,
+              borderRadius: "50%",
+              border: "2px solid rgba(255,255,255,0.6)",
+              background: pillColor ?? "#e2e8f0",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          />
+          {colorPickerOpen && (
+            <div
+              data-testid="color-picker-popover"
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: "50%",
+                transform: "translateX(-50%)",
+                marginTop: 6,
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 8,
+                padding: 6,
+                display: "flex",
+                gap: 4,
+                zIndex: 10,
+              }}
+            >
+              {ACCENT_COLORS.map((c) => (
+                <button
+                  key={c}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleColorChange(c)
+                  }}
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    background: c,
+                    border: c === activeColor ? "2px solid #0f172a" : "2px solid transparent",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
         <div style={{ width: 1, height: 16, background: hasAccent ? "rgba(255,255,255,0.3)" : "#e2e8f0" }} />
 

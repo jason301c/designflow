@@ -5,7 +5,7 @@ import { fileURLToPath } from "url"
 import { existsSync } from "fs"
 import fs from "fs/promises"
 import { scanScreens, extractNavigationTargets } from "./screen-scanner"
-import { updateScreenPosition, updateScreenViewport, writeFlowConfig } from "./flow-writer"
+import { updateScreenPosition, updateScreenViewport, updateScreenColor, writeFlowConfig } from "./flow-writer"
 import type { DesignFlowConfig } from "../types"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -198,6 +198,38 @@ export function designflowPlugin(options: DesignflowPluginOptions): Plugin {
             let config: DesignFlowConfig = flowsModule.default
 
             config = updateScreenViewport(config, screenId, viewport)
+
+            suppressNextFlowsReload = true
+            await writeFlowConfig(flowsPath, config)
+
+            res.writeHead(200, { "Content-Type": "application/json" })
+            res.end(JSON.stringify({ ok: true }))
+          } catch (err) {
+            res.writeHead(500, { "Content-Type": "application/json" })
+            res.end(JSON.stringify({ error: String(err) }))
+          }
+        })
+      })
+
+      // API middleware for color persistence
+      server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
+        if (req.url !== "/__designflow/update-color" || req.method !== "POST") {
+          return next()
+        }
+
+        let body = ""
+        req.on("data", (chunk: Buffer) => { body += chunk.toString() })
+        req.on("end", async () => {
+          try {
+            const { screenId, color } = JSON.parse(body) as {
+              screenId: string
+              color: string
+            }
+
+            const flowsModule = await import(`${flowsPath}?t=${Date.now()}`)
+            let config: DesignFlowConfig = flowsModule.default
+
+            config = updateScreenColor(config, screenId, color)
 
             suppressNextFlowsReload = true
             await writeFlowConfig(flowsPath, config)

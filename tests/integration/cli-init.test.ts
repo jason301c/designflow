@@ -97,9 +97,17 @@ describe("designflow init", () => {
     expect(content).toContain("var(--df-primary)")
   })
 
-  it("should not generate styles.css by default", async () => {
+  it("should generate styles.css by default", async () => {
     const wireframesDir = path.join(tmpDir, "wireframes")
     await runInit({ dir: wireframesDir })
+
+    const content = await fs.readFile(path.join(wireframesDir, "styles.css"), "utf-8")
+    expect(content).toContain('@import "tailwindcss"')
+  })
+
+  it("should not generate styles.css when tailwind is false", async () => {
+    const wireframesDir = path.join(tmpDir, "wireframes")
+    await runInit({ dir: wireframesDir, tailwind: false })
 
     const exists = await fs.access(path.join(wireframesDir, "styles.css")).then(() => true).catch(() => false)
     expect(exists).toBe(false)
@@ -122,9 +130,18 @@ describe("designflow init", () => {
     expect(loginContent).not.toContain("style={{")
   })
 
-  it("should scaffold inline-style screens by default", async () => {
+  it("should scaffold Tailwind-class screens by default", async () => {
     const wireframesDir = path.join(tmpDir, "wireframes")
     await runInit({ dir: wireframesDir })
+
+    const loginContent = await fs.readFile(path.join(wireframesDir, "screens/Login.tsx"), "utf-8")
+    expect(loginContent).toContain("className=")
+    expect(loginContent).not.toContain("style={{")
+  })
+
+  it("should scaffold inline-style screens when tailwind is false", async () => {
+    const wireframesDir = path.join(tmpDir, "wireframes")
+    await runInit({ dir: wireframesDir, tailwind: false })
 
     const loginContent = await fs.readFile(path.join(wireframesDir, "screens/Login.tsx"), "utf-8")
     expect(loginContent).toContain("style={{")

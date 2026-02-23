@@ -44,6 +44,7 @@ export interface ScreenConfig {
   file: string
   position: { x: number; y: number }
   viewport?: Viewport
+  color?: string
 }
 
 export interface EdgeConfig {

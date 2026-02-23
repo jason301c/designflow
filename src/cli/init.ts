@@ -11,7 +11,7 @@ export interface InitOptions {
 }
 
 export async function runInit(options: InitOptions): Promise<void> {
-  const { dir, tailwind = false } = options
+  const { dir, tailwind = true } = options
 
   // Check if directory already exists
   try {

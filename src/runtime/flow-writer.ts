@@ -20,6 +20,25 @@ export function updateScreenPosition(
   }
 }
 
+export function updateScreenColor(
+  config: DesignFlowConfig,
+  screenId: string,
+  color: string,
+): DesignFlowConfig {
+  if (!config.screens[screenId]) return config
+
+  return {
+    ...config,
+    screens: {
+      ...config.screens,
+      [screenId]: {
+        ...config.screens[screenId],
+        color,
+      },
+    },
+  }
+}
+
 export function updateScreenViewport(
   config: DesignFlowConfig,
   screenId: string,
@@ -50,6 +69,9 @@ export function serializeFlowConfig(config: DesignFlowConfig): string {
       if (screen.viewport) {
         fields.push(`      viewport: "${screen.viewport}"`)
       }
+      if (screen.color) {
+        fields.push(`      color: "${screen.color}"`)
+      }
       return `    ${id}: {\n${fields.join(",\n")},\n    }`
     })
     .join(",\n")
@@ -62,10 +84,12 @@ export function serializeFlowConfig(config: DesignFlowConfig): string {
     })
     .join(",\n")
 
+  const nameField = config.name ? `  name: "${config.name}",\n` : ""
+
   return `import type { DesignFlowConfig } from "designflow"
 
 const config: DesignFlowConfig = {
-  screens: {
+${nameField}  screens: {
 ${screenEntries},
   },
 

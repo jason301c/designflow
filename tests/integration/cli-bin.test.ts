@@ -18,7 +18,8 @@ describe("CLI bin entry", () => {
     cli
       .command("init", "Scaffold wireframes directory with example screens")
       .option("--dir <dir>", "Target directory", { default: "./wireframes" })
-      .option("--tailwind", "Generate Tailwind config", { default: false })
+      .option("--tailwind", "Include Tailwind CSS (default: true)", { default: true })
+      .option("--no-tailwind", "Skip Tailwind CSS")
       .action(() => {})
 
     cli
