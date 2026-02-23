@@ -170,22 +170,26 @@ describe("ScreenNode", () => {
     expect(thumbnail.style.height).toBe("420px")
   })
 
-  describe("per-screen viewport toggle", () => {
-    it("should render D/T/M viewport toggle buttons", () => {
+  describe("viewport dropdown", () => {
+    it("should render a viewport select dropdown", () => {
       render(<ScreenNode {...defaultProps} />)
-      expect(screen.getByTestId("viewport-toggle")).toBeInTheDocument()
-      expect(screen.getByRole("button", { name: /desktop/i })).toBeInTheDocument()
-      expect(screen.getByRole("button", { name: /tablet/i })).toBeInTheDocument()
-      expect(screen.getByRole("button", { name: /mobile/i })).toBeInTheDocument()
+      expect(screen.getByTestId("viewport-select")).toBeInTheDocument()
     })
 
-    it("should default to desktop active", () => {
+    it("should default to desktop", () => {
       render(<ScreenNode {...defaultProps} />)
-      const desktopBtn = screen.getByRole("button", { name: /desktop/i })
-      expect(desktopBtn).toHaveAttribute("data-active", "true")
+      const select = screen.getByTestId("viewport-select") as HTMLSelectElement
+      expect(select.value).toBe("desktop")
     })
 
-    it("should change thumbnail size when clicking mobile toggle", () => {
+    it("should have desktop, tablet, mobile options", () => {
+      render(<ScreenNode {...defaultProps} />)
+      const select = screen.getByTestId("viewport-select") as HTMLSelectElement
+      const options = Array.from(select.options).map((o) => o.value)
+      expect(options).toEqual(["desktop", "tablet", "mobile"])
+    })
+
+    it("should change thumbnail size when selecting mobile", () => {
       function TestScreen() {
         return <div>Content</div>
       }
@@ -197,15 +201,13 @@ describe("ScreenNode", () => {
       const inner = getInnerContent()
       expect(inner.style.width).toBe("1440px")
 
-      // Click mobile
-      fireEvent.click(screen.getByRole("button", { name: /mobile/i }))
+      fireEvent.change(screen.getByTestId("viewport-select"), { target: { value: "mobile" } })
 
-      // Now should be mobile: 390x844
       expect(inner.style.width).toBe("390px")
       expect(inner.style.height).toBe("844px")
     })
 
-    it("should change thumbnail size when clicking tablet toggle", () => {
+    it("should change thumbnail size when selecting tablet", () => {
       function TestScreen() {
         return <div>Content</div>
       }
@@ -215,22 +217,11 @@ describe("ScreenNode", () => {
       }
       render(<ScreenNode {...props} />)
 
-      fireEvent.click(screen.getByRole("button", { name: /tablet/i }))
+      fireEvent.change(screen.getByTestId("viewport-select"), { target: { value: "tablet" } })
 
       const inner = getInnerContent()
       expect(inner.style.width).toBe("768px")
       expect(inner.style.height).toBe("1024px")
-    })
-
-    it("should update active state when viewport toggle is clicked", () => {
-      render(<ScreenNode {...defaultProps} />)
-      const mobileBtn = screen.getByRole("button", { name: /mobile/i })
-      const desktopBtn = screen.getByRole("button", { name: /desktop/i })
-
-      fireEvent.click(mobileBtn)
-
-      expect(mobileBtn).toHaveAttribute("data-active", "true")
-      expect(desktopBtn).toHaveAttribute("data-active", "false")
     })
 
     it("should initialize with viewport from data prop", () => {
@@ -239,10 +230,15 @@ describe("ScreenNode", () => {
         data: { ...defaultProps.data, viewport: "tablet" as const },
       }
       render(<ScreenNode {...props} />)
-      const tabletBtn = screen.getByRole("button", { name: /tablet/i })
-      expect(tabletBtn).toHaveAttribute("data-active", "true")
+      const select = screen.getByTestId("viewport-select") as HTMLSelectElement
+      expect(select.value).toBe("tablet")
     })
 
+    it("should overlay select with opacity 0 for clean look", () => {
+      render(<ScreenNode {...defaultProps} />)
+      const select = screen.getByTestId("viewport-select") as HTMLSelectElement
+      expect(select.style.opacity).toBe("0")
+    })
   })
 
   describe("accent color pill", () => {
@@ -274,18 +270,16 @@ describe("ScreenNode", () => {
     })
   })
 
-  describe("per-screen color scheme toggle", () => {
-    it("should render light/dark toggle buttons", () => {
+  describe("color scheme toggle", () => {
+    it("should render a color scheme toggle", () => {
       render(<ScreenNode {...defaultProps} />)
       expect(screen.getByTestId("color-scheme-toggle")).toBeInTheDocument()
-      expect(screen.getByRole("button", { name: /light/i })).toBeInTheDocument()
-      expect(screen.getByRole("button", { name: /dark/i })).toBeInTheDocument()
     })
 
-    it("should default to light active", () => {
+    it("should default to light (unchecked)", () => {
       render(<ScreenNode {...defaultProps} />)
-      const lightBtn = screen.getByRole("button", { name: /light/i })
-      expect(lightBtn).toHaveAttribute("data-active", "true")
+      const toggle = screen.getByTestId("color-scheme-toggle").querySelector("input") as HTMLInputElement
+      expect(toggle.checked).toBe(false)
     })
 
     it("should change color-scheme CSS property when toggling to dark", () => {
@@ -298,7 +292,8 @@ describe("ScreenNode", () => {
       }
       render(<ScreenNode {...props} />)
 
-      fireEvent.click(screen.getByRole("button", { name: /dark/i }))
+      const toggle = screen.getByTestId("color-scheme-toggle").querySelector("input") as HTMLInputElement
+      fireEvent.click(toggle)
 
       const wrapper = getColorSchemeWrapper()
       expect(wrapper).toBeTruthy()
@@ -315,7 +310,8 @@ describe("ScreenNode", () => {
       }
       render(<ScreenNode {...props} />)
 
-      fireEvent.click(screen.getByRole("button", { name: /dark/i }))
+      const toggle = screen.getByTestId("color-scheme-toggle").querySelector("input") as HTMLInputElement
+      fireEvent.click(toggle)
 
       const wrapper = getColorSchemeWrapper()
       expect(wrapper).toHaveAttribute("data-df-color-scheme", "dark")
@@ -336,7 +332,8 @@ describe("ScreenNode", () => {
       expect(thumbnail.style.background).toContain("248, 250, 252")
 
       // Toggle to dark
-      fireEvent.click(screen.getByRole("button", { name: /dark/i }))
+      const toggle = screen.getByTestId("color-scheme-toggle").querySelector("input") as HTMLInputElement
+      fireEvent.click(toggle)
       expect(thumbnail.style.background).toContain("15, 23, 42")
     })
 
@@ -350,8 +347,8 @@ describe("ScreenNode", () => {
       }
       render(<ScreenNode {...props} />)
 
-      const darkBtn = screen.getByRole("button", { name: /dark/i })
-      expect(darkBtn).toHaveAttribute("data-active", "true")
+      const toggle = screen.getByTestId("color-scheme-toggle").querySelector("input") as HTMLInputElement
+      expect(toggle.checked).toBe(true)
       const thumbnail = screen.getByTestId("screen-thumbnail")
       expect(thumbnail.style.background).toContain("15, 23, 42")
     })
