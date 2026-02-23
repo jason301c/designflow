@@ -3,6 +3,7 @@ import type { EdgeProps, Edge } from "@xyflow/react"
 
 export type FlowEdgeData = {
   label?: string
+  inferred?: boolean
 }
 
 export type FlowEdgeType = Edge<FlowEdgeData, "flow">
@@ -26,12 +27,17 @@ export function FlowEdge({
     targetPosition,
   })
 
+  const isInferred = data?.inferred === true
+  const edgeStyle = isInferred
+    ? { stroke: "#cbd5e1", strokeWidth: 1.5, strokeDasharray: "6 3" }
+    : { stroke: "#94a3b8", strokeWidth: 1.5 }
+
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
-        style={{ stroke: "#94a3b8", strokeWidth: 1.5 }}
+        style={edgeStyle}
       />
       {data?.label && (
         <EdgeLabelRenderer>

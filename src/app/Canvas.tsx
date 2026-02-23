@@ -4,7 +4,7 @@ import { useCallback, useEffect, type ComponentType } from "react"
 import { ScreenNode } from "./ScreenNode"
 import { FlowEdge } from "./FlowEdge"
 import { Toolbar } from "./Toolbar"
-import type { DesignFlowConfig } from "../types"
+import type { DesignFlowConfig, EdgeConfig } from "../types"
 
 const nodeTypes = { screen: ScreenNode }
 const edgeTypes = { flow: FlowEdge }
@@ -14,6 +14,7 @@ interface CanvasProps {
   screens?: Record<string, ComponentType>
   onScreenSelect: (screenId: string) => void
   focusNodeId?: string | null
+  inferredEdges?: EdgeConfig[]
 }
 
 function configToNodes(
@@ -36,9 +37,8 @@ function configToNodes(
   }))
 }
 
-function configToEdges(config: DesignFlowConfig): Edge[] {
-  if (!config.edges) return []
-  return config.edges.map((edge) => ({
+function configToEdges(config: DesignFlowConfig, inferredEdges?: EdgeConfig[]): Edge[] {
+  const explicitEdges: Edge[] = (config.edges ?? []).map((edge) => ({
     id: `${edge.from}-${edge.to}`,
     type: "flow",
     source: edge.from,
@@ -47,6 +47,26 @@ function configToEdges(config: DesignFlowConfig): Edge[] {
     targetHandle: "target-left",
     data: { label: edge.label },
   }))
+
+  if (!inferredEdges?.length) return explicitEdges
+
+  const explicitKeys = new Set(
+    (config.edges ?? []).map((e) => `${e.from}-${e.to}`)
+  )
+
+  const inferred: Edge[] = inferredEdges
+    .filter((e) => !explicitKeys.has(`${e.from}-${e.to}`))
+    .map((edge) => ({
+      id: `inferred-${edge.from}-${edge.to}`,
+      type: "flow",
+      source: edge.from,
+      target: edge.to,
+      sourceHandle: "source-right",
+      targetHandle: "target-left",
+      data: { label: edge.label, inferred: true },
+    }))
+
+  return [...explicitEdges, ...inferred]
 }
 
 function FocusHandler({ focusNodeId }: { focusNodeId?: string | null }) {
@@ -63,9 +83,9 @@ function FocusHandler({ focusNodeId }: { focusNodeId?: string | null }) {
   return null
 }
 
-export function Canvas({ config, screens, onScreenSelect, focusNodeId }: CanvasProps) {
+export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredEdges }: CanvasProps) {
   const initialNodes = configToNodes(config, onScreenSelect, screens)
-  const initialEdges = configToEdges(config)
+  const initialEdges = configToEdges(config, inferredEdges)
 
   const [nodes, , onNodesChange] = useNodesState(initialNodes)
   const [edges, , onEdgesChange] = useEdgesState(initialEdges)

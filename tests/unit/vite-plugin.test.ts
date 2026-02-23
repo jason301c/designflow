@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest"
+import path from "path"
 import { designflowPlugin } from "../../src/runtime/vite-plugin"
 
 function createMockServer() {
@@ -73,6 +74,58 @@ describe("designflowPlugin", () => {
     )
     expect(resolveId("some-other-module")).toBeUndefined()
   })
+
+  it("should resolve virtual:designflow/inferred-edges module id", () => {
+    const plugin = designflowPlugin({ dir: "./wireframes" })
+    const resolveId = plugin.resolveId as (id: string) => string | undefined
+    expect(resolveId("virtual:designflow/inferred-edges")).toBe(
+      "\0virtual:designflow/inferred-edges"
+    )
+  })
+
+  it("should load inferred-edges module with edge data from screen sources", async () => {
+    const wireframesDir = path.resolve(__dirname, "../fixtures/sample-wireframes")
+    const plugin = designflowPlugin({ dir: wireframesDir })
+    const load = plugin.load as (id: string) => Promise<string | undefined>
+    const result = await load("\0virtual:designflow/inferred-edges")
+    expect(result).toBeDefined()
+    // Login.tsx has data-df-navigate="dashboard" and data-df-navigate="settings"
+    // So we expect edges from login -> dashboard and login -> settings
+    expect(result).toContain("login")
+    expect(result).toContain("dashboard")
+    expect(result).toContain("settings")
+    expect(result).toContain("inferred")
+    expect(result).toContain("export default")
+  })
+
+  it("should not generate inferred edges for screens without data-df-navigate", async () => {
+    const wireframesDir = path.resolve(__dirname, "../fixtures/sample-wireframes")
+    const plugin = designflowPlugin({ dir: wireframesDir })
+    const load = plugin.load as (id: string) => Promise<string | undefined>
+    const result = await load("\0virtual:designflow/inferred-edges")
+    expect(result).toBeDefined()
+    // Dashboard.tsx has no data-df-navigate, so it should not appear as an edge source
+    expect(result).not.toContain('"from":"dashboard"')
+  })
+
+  it("should invalidate inferred-edges module on screen file changes", () => {
+    const plugin = designflowPlugin({ dir: "./wireframes" })
+    const mockServer = createMockServer()
+    const configureServer = plugin.configureServer as (server: any) => void
+    configureServer(mockServer)
+
+    // Simulate a "change" event for a screen file
+    const changeHandlers = mockServer._eventHandlers["change"]
+    expect(changeHandlers).toBeDefined()
+
+    const screensDir = require("path").resolve("./wireframes", "screens")
+    changeHandlers[0](screensDir + "/Login.tsx")
+
+    // Should have called getModuleById for the inferred-edges module too
+    expect(mockServer.moduleGraph.getModuleById).toHaveBeenCalledWith(
+      "\0virtual:designflow/inferred-edges"
+    )
+  })
 })
 
 describe("configureServer — file watcher", () => {
@@ -143,6 +196,96 @@ describe("configureServer — file watcher", () => {
 
     // ws.send is called only for the change handler setup, not for unrelated paths
     expect(mockServer.ws.send).not.toHaveBeenCalled()
+  })
+})
+
+describe("configureServer — theme update API", () => {
+  function getMiddlewares(plugin: ReturnType<typeof designflowPlugin>) {
+    const mockServer = createMockServer()
+    const configureServer = plugin.configureServer as (server: any) => void
+    configureServer(mockServer)
+    return mockServer.middlewares.use.mock.calls.map((c: any) => c[0])
+  }
+
+  it("should register update-theme middleware", () => {
+    const plugin = designflowPlugin({ dir: "./wireframes" })
+    const middlewares = getMiddlewares(plugin)
+    expect(middlewares.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it("should call next() for non-matching theme route", () => {
+    const plugin = designflowPlugin({ dir: "./wireframes" })
+    const mockServer = createMockServer()
+    const configureServer = plugin.configureServer as (server: any) => void
+    configureServer(mockServer)
+
+    // Try all registered middlewares — at least one should call next for unrelated routes
+    const middlewareCalls = mockServer.middlewares.use.mock.calls
+    for (const [middlewareFn] of middlewareCalls) {
+      const mockReq = { url: "/unrelated-route", method: "GET" }
+      const mockRes = { end: vi.fn(), writeHead: vi.fn() }
+      const mockNext = vi.fn()
+      middlewareFn(mockReq, mockRes, mockNext)
+      // Each middleware should call next() for routes it doesn't handle
+      expect(mockNext).toHaveBeenCalled()
+    }
+  })
+
+  it("should not call next() for POST /__designflow/update-theme", () => {
+    const plugin = designflowPlugin({ dir: "./wireframes" })
+    const mockServer = createMockServer()
+    const configureServer = plugin.configureServer as (server: any) => void
+    configureServer(mockServer)
+
+    // Find the middleware that handles update-theme
+    const middlewareCalls = mockServer.middlewares.use.mock.calls
+    let handled = false
+    for (const [middlewareFn] of middlewareCalls) {
+      const mockNext = vi.fn()
+      const mockReq: any = {
+        url: "/__designflow/update-theme",
+        method: "POST",
+        on: vi.fn((event: string, handler: (data?: any) => void) => {
+          if (event === "data") handler(Buffer.from(JSON.stringify({ theme: {} })))
+          if (event === "end") handler()
+        }),
+      }
+      const mockRes = { end: vi.fn(), writeHead: vi.fn() }
+      middlewareFn(mockReq, mockRes, mockNext)
+      if (!mockNext.mock.calls.length) {
+        handled = true
+        break
+      }
+    }
+    expect(handled).toBe(true)
+  })
+
+  it("should not call next() for POST /__designflow/generate-tailwind", () => {
+    const plugin = designflowPlugin({ dir: "./wireframes" })
+    const mockServer = createMockServer()
+    const configureServer = plugin.configureServer as (server: any) => void
+    configureServer(mockServer)
+
+    const middlewareCalls = mockServer.middlewares.use.mock.calls
+    let handled = false
+    for (const [middlewareFn] of middlewareCalls) {
+      const mockNext = vi.fn()
+      const mockReq: any = {
+        url: "/__designflow/generate-tailwind",
+        method: "POST",
+        on: vi.fn((event: string, handler: (data?: any) => void) => {
+          if (event === "data") handler(Buffer.from(JSON.stringify({ theme: {} })))
+          if (event === "end") handler()
+        }),
+      }
+      const mockRes = { end: vi.fn(), writeHead: vi.fn() }
+      middlewareFn(mockReq, mockRes, mockNext)
+      if (!mockNext.mock.calls.length) {
+        handled = true
+        break
+      }
+    }
+    expect(handled).toBe(true)
   })
 })
 

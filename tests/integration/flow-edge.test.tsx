@@ -68,4 +68,35 @@ describe("FlowEdge", () => {
     expect(edge).toHaveStyle({ stroke: "#94a3b8", strokeWidth: "1.5" })
     expect(edge.style.strokeDasharray).toBeFalsy()
   })
+
+  it("should render dashed style when inferred is true", () => {
+    render(
+      <svg>
+        <FlowEdge {...defaultProps} data={{ label: "navigate", inferred: true }} />
+      </svg>
+    )
+    const edge = screen.getByTestId(`base-edge-${defaultProps.id}`)
+    expect(edge).toHaveStyle({ strokeDasharray: "6 3" })
+  })
+
+  it("should use lighter stroke color for inferred edges", () => {
+    render(
+      <svg>
+        <FlowEdge {...defaultProps} data={{ label: "navigate", inferred: true }} />
+      </svg>
+    )
+    const edge = screen.getByTestId(`base-edge-${defaultProps.id}`)
+    expect(edge).toHaveStyle({ stroke: "#cbd5e1" })
+  })
+
+  it("should not use dashed style when inferred is false or undefined", () => {
+    render(
+      <svg>
+        <FlowEdge {...defaultProps} data={{ label: "Sign in" }} />
+      </svg>
+    )
+    const edge = screen.getByTestId(`base-edge-${defaultProps.id}`)
+    expect(edge).toHaveStyle({ stroke: "#94a3b8" })
+    expect(edge.style.strokeDasharray).toBeFalsy()
+  })
 })

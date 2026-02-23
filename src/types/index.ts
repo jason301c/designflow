@@ -26,6 +26,7 @@ export interface EdgeConfig {
   from: string
   to: string
   label?: string
+  inferred?: boolean
 }
 
 export interface DesignFlowConfig {

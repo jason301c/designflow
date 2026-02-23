@@ -49,10 +49,12 @@ export async function runDev(options: DevOptions): Promise<void> {
     import { App } from "/@designflow/app"
     import config from "/flows.ts"
     import screensModule from "virtual:designflow/screens"
+    import inferredEdgesModule from "virtual:designflow/inferred-edges"
 
     const screens = screensModule.default || screensModule
+    const inferredEdges = inferredEdgesModule.default || inferredEdgesModule
     const root = createRoot(document.getElementById("root"))
-    root.render(createElement(App, { config: config.default || config, screens }))
+    root.render(createElement(App, { config: config.default || config, screens, inferredEdges }))
   </script>
 </body>
 </html>`
