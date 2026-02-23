@@ -45,9 +45,14 @@ function pairKey(a: string, b: string): string {
 function configToEdges(config: DesignFlowConfig, inferredEdges?: EdgeConfig[]): Edge[] {
   const seenPairs = new Set<string>()
 
-  const explicitEdges: Edge[] = (config.edges ?? []).map((edge) => {
-    seenPairs.add(pairKey(edge.from, edge.to))
-    return {
+  const explicitEdges: Edge[] = (config.edges ?? [])
+    .filter((edge) => {
+      const key = pairKey(edge.from, edge.to)
+      if (seenPairs.has(key)) return false
+      seenPairs.add(key)
+      return true
+    })
+    .map((edge) => ({
       id: `${edge.from}-${edge.to}`,
       type: "flow",
       source: edge.from,
@@ -55,8 +60,7 @@ function configToEdges(config: DesignFlowConfig, inferredEdges?: EdgeConfig[]): 
       sourceHandle: "source-right",
       targetHandle: "target-left",
       data: { label: edge.label },
-    }
-  })
+    }))
 
   if (!inferredEdges?.length) return explicitEdges
 

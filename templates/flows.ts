@@ -24,7 +24,6 @@ const config: DesignFlowConfig = {
   edges: [
     { from: "login", to: "dashboard", label: "Sign in" },
     { from: "dashboard", to: "settings", label: "Gear icon" },
-    { from: "settings", to: "dashboard", label: "Back" },
   ],
 }
 

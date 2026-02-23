@@ -233,6 +233,26 @@ describe("Canvas — inferred edges merging", () => {
     // Only one edge for the (login, dashboard) pair
     expect(edges).toHaveLength(1)
   })
+
+  it("should deduplicate explicit edges that form a reverse pair", () => {
+    const configBidirectional: DesignFlowConfig = {
+      screens: {
+        dashboard: { title: "Dashboard", file: "./screens/Dashboard.tsx", position: { x: 0, y: 0 } },
+        settings: { title: "Settings", file: "./screens/Settings.tsx", position: { x: 450, y: 0 } },
+      },
+      edges: [
+        { from: "dashboard", to: "settings", label: "Gear icon" },
+        { from: "settings", to: "dashboard", label: "Back" },
+      ],
+    }
+    render(<Canvas config={configBidirectional} onScreenSelect={vi.fn()} />)
+    const rfEl = screen.getByTestId("react-flow")
+    const edges = JSON.parse(rfEl.getAttribute("data-edges") || "[]")
+    // Only one edge — first explicit wins
+    expect(edges).toHaveLength(1)
+    expect(edges[0].id).toBe("dashboard-settings")
+    expect(edges[0].data.label).toBe("Gear icon")
+  })
 })
 
 describe("Canvas — position persistence", () => {
