@@ -5,6 +5,7 @@ export type {
   EdgeConfig,
   Viewport,
   ColorScheme,
+  CanvasAppearance,
 } from "./types"
 
 // Runtime

@@ -60,4 +60,26 @@ describe("Toolbar", () => {
     render(<Toolbar />)
     expect(screen.getByTestId("toolbar")).toBeInTheDocument()
   })
+
+  describe("appearance toggle", () => {
+    it("should render appearance toggle button", () => {
+      const onAppearanceChange = vi.fn()
+      render(<Toolbar appearance="light" onAppearanceChange={onAppearanceChange} />)
+      expect(screen.getByRole("button", { name: /appearance/i })).toBeInTheDocument()
+    })
+
+    it("should call onAppearanceChange when appearance toggle is clicked", () => {
+      const onAppearanceChange = vi.fn()
+      render(<Toolbar appearance="light" onAppearanceChange={onAppearanceChange} />)
+      fireEvent.click(screen.getByRole("button", { name: /appearance/i }))
+      expect(onAppearanceChange).toHaveBeenCalledWith("dark")
+    })
+
+    it("should toggle back to light when clicked in dark mode", () => {
+      const onAppearanceChange = vi.fn()
+      render(<Toolbar appearance="dark" onAppearanceChange={onAppearanceChange} />)
+      fireEvent.click(screen.getByRole("button", { name: /appearance/i }))
+      expect(onAppearanceChange).toHaveBeenCalledWith("light")
+    })
+  })
 })

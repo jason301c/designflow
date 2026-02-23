@@ -4,7 +4,7 @@ import { useCallback, useEffect, type ComponentType } from "react"
 import { ScreenNode } from "./ScreenNode"
 import { FlowEdge } from "./FlowEdge"
 import { Toolbar } from "./Toolbar"
-import type { DesignFlowConfig, EdgeConfig } from "../types"
+import type { DesignFlowConfig, EdgeConfig, CanvasAppearance } from "../types"
 
 const nodeTypes = { screen: ScreenNode }
 const edgeTypes = { flow: FlowEdge }
@@ -15,6 +15,8 @@ interface CanvasProps {
   onScreenSelect: (screenId: string) => void
   focusNodeId?: string | null
   inferredEdges?: EdgeConfig[]
+  appearance?: CanvasAppearance
+  onAppearanceChange?: (appearance: CanvasAppearance) => void
 }
 
 function configToNodes(
@@ -82,7 +84,7 @@ function FocusHandler({ focusNodeId }: { focusNodeId?: string | null }) {
   return null
 }
 
-export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredEdges }: CanvasProps) {
+export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredEdges, appearance, onAppearanceChange }: CanvasProps) {
   const initialNodes = configToNodes(config, onScreenSelect, screens)
   const initialEdges = configToEdges(config, inferredEdges)
 
@@ -99,8 +101,10 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
     })
   }, [])
 
+  const isDarkCanvas = appearance === "dark"
+
   return (
-    <div style={{ width: "100%", height: "100vh" }}>
+    <div style={{ width: "100%", height: "100vh", background: isDarkCanvas ? "#1e293b" : undefined }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -116,7 +120,7 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
       >
         <FocusHandler focusNodeId={focusNodeId} />
         <MiniMap pannable zoomable />
-        <Toolbar />
+        <Toolbar appearance={appearance} onAppearanceChange={onAppearanceChange} />
       </ReactFlow>
     </div>
   )

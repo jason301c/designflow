@@ -127,6 +127,19 @@ describe("Canvas", () => {
     render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} />)
     expect(screen.getByTestId("toolbar")).toBeInTheDocument()
   })
+
+  it("should apply dark background when appearance is dark", () => {
+    render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} appearance="dark" onAppearanceChange={vi.fn()} />)
+    const wrapper = screen.getByTestId("react-flow").parentElement as HTMLElement
+    expect(wrapper.style.background).toContain("30, 41, 59")
+  })
+
+  it("should default to light background", () => {
+    render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} />)
+    const wrapper = screen.getByTestId("react-flow").parentElement as HTMLElement
+    // No explicit background override for light (just default white)
+    expect(wrapper.style.background).not.toContain("30, 41, 59")
+  })
 })
 
 describe("Canvas — inferred edges merging", () => {

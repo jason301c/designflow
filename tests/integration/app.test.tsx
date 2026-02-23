@@ -91,6 +91,23 @@ describe("App", () => {
     expect(screen.getByTestId("react-flow")).toBeInTheDocument()
   })
 
+  describe("canvas appearance", () => {
+    it("should render appearance toggle button", () => {
+      render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
+      expect(screen.getByRole("button", { name: /appearance/i })).toBeInTheDocument()
+    })
+
+    it("should toggle appearance when button is clicked", () => {
+      render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
+      const btn = screen.getByRole("button", { name: /appearance/i })
+      // Default is light, click to toggle to dark
+      fireEvent.click(btn)
+      // The canvas wrapper should now have dark background
+      const wrapper = screen.getByTestId("react-flow").parentElement as HTMLElement
+      expect(wrapper.style.background).toContain("30, 41, 59")
+    })
+  })
+
   describe("screen-to-screen navigation", () => {
     it("should navigate from one screen to another via data-df-navigate", () => {
       render(
