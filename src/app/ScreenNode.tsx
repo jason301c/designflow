@@ -32,7 +32,6 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
         border: "1px solid #e2e8f0",
         borderRadius: "8px",
         padding: "8px",
-        width: `${thumbnailWidth}px`,
         cursor: "pointer",
       }}
     >
