@@ -25,6 +25,7 @@ export function buildDevHtml(opts: { hasStylesCSS: boolean; projectName?: string
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${title}</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234488ff'/><text x='16' y='22' font-size='18' font-weight='700' fill='white' text-anchor='middle' font-family='system-ui'>df</text></svg>" />
   <style>
     @layer base {
       * { margin: 0; padding: 0; box-sizing: border-box; }
