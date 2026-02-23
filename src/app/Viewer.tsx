@@ -1,26 +1,13 @@
-import { useEffect, useRef, useState, type ComponentType } from "react"
-import type { DesignFlowConfig } from "../types"
+import { useEffect, type ComponentType } from "react"
 
 interface ViewerProps {
   screenId: string
   screenTitle: string
   component: ComponentType
   onClose: () => void
-  onNavigate?: (screenId: string) => void
-  config?: DesignFlowConfig
 }
 
-interface NavBadge {
-  targetId: string
-  label: string
-  top: number
-  left: number
-}
-
-export function Viewer({ screenId, screenTitle, component: ScreenComponent, onClose, onNavigate, config }: ViewerProps) {
-  const contentRef = useRef<HTMLDivElement>(null)
-  const [badges, setBadges] = useState<NavBadge[]>([])
-
+export function Viewer({ screenId, screenTitle, component: ScreenComponent, onClose }: ViewerProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose()
@@ -28,51 +15,6 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [onClose])
-
-  // Scan for data-df-navigate elements and create badges
-  useEffect(() => {
-    if (!contentRef.current || !config) return
-
-    const container = contentRef.current
-    const navElements = container.querySelectorAll<HTMLElement>("[data-df-navigate]")
-    const newBadges: NavBadge[] = []
-
-    navElements.forEach((el) => {
-      const targetId = el.getAttribute("data-df-navigate")
-      if (!targetId) return
-
-      const targetTitle = config.screens[targetId]?.title ?? targetId
-      const rect = el.getBoundingClientRect()
-      const containerRect = container.getBoundingClientRect()
-
-      newBadges.push({
-        targetId,
-        label: `\u2192 ${targetTitle}`,
-        top: rect.top - containerRect.top,
-        left: rect.right - containerRect.left + 4,
-      })
-    })
-
-    setBadges(newBadges)
-  }, [screenId, config])
-
-  // Event delegation for navigation clicks
-  useEffect(() => {
-    if (!contentRef.current || !onNavigate) return
-
-    const container = contentRef.current
-    const handleClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest<HTMLElement>("[data-df-navigate]")
-      if (target) {
-        e.preventDefault()
-        const targetId = target.getAttribute("data-df-navigate")
-        if (targetId) onNavigate(targetId)
-      }
-    }
-
-    container.addEventListener("click", handleClick)
-    return () => container.removeEventListener("click", handleClick)
-  }, [onNavigate])
 
   return (
     <div
@@ -124,7 +66,6 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
 
       {/* Screen content */}
       <div
-        ref={contentRef}
         style={{
           position: "absolute",
           inset: 0,
@@ -133,28 +74,6 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
         }}
       >
         <ScreenComponent key={screenId} />
-        {badges.map((badge) => (
-          <span
-            key={badge.targetId}
-            style={{
-              position: "absolute",
-              top: `${badge.top}px`,
-              left: `${badge.left}px`,
-              fontSize: "11px",
-              fontWeight: 500,
-              background: "#eff6ff",
-              color: "#3b82f6",
-              border: "1px solid #bfdbfe",
-              borderRadius: "9999px",
-              padding: "2px 8px",
-              whiteSpace: "nowrap",
-              pointerEvents: "none",
-              zIndex: 10,
-            }}
-          >
-            {badge.label}
-          </span>
-        ))}
       </div>
     </div>
   )
