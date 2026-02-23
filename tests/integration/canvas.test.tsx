@@ -111,40 +111,11 @@ describe("Canvas", () => {
     expect(nodes[0].data.viewport).toBe("mobile")
   })
 
-  it("should pass resolution through node data", () => {
-    const configWithRes: DesignFlowConfig = {
-      screens: {
-        login: {
-          title: "Login",
-          file: "./screens/Login.tsx",
-          position: { x: 0, y: 0 },
-          resolution: { width: 1920, height: 1080 },
-        },
-      },
-    }
-    render(<Canvas config={configWithRes} onScreenSelect={vi.fn()} />)
+  it("should not pass resolution in node data", () => {
+    render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} />)
     const rfEl = screen.getByTestId("react-flow")
     const nodes = JSON.parse(rfEl.getAttribute("data-nodes") || "[]")
-    expect(nodes[0].data.resolution).toEqual({ width: 1920, height: 1080 })
-  })
-
-  it("should pass both viewport and resolution through node data", () => {
-    const configBoth: DesignFlowConfig = {
-      screens: {
-        login: {
-          title: "Login",
-          file: "./screens/Login.tsx",
-          position: { x: 0, y: 0 },
-          viewport: "tablet",
-          resolution: { width: 800, height: 600 },
-        },
-      },
-    }
-    render(<Canvas config={configBoth} onScreenSelect={vi.fn()} />)
-    const rfEl = screen.getByTestId("react-flow")
-    const nodes = JSON.parse(rfEl.getAttribute("data-nodes") || "[]")
-    expect(nodes[0].data.viewport).toBe("tablet")
-    expect(nodes[0].data.resolution).toEqual({ width: 800, height: 600 })
+    expect(nodes[0].data).not.toHaveProperty("resolution")
   })
 
   it("should render MiniMap inside ReactFlow", () => {

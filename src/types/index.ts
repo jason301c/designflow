@@ -8,9 +8,7 @@ export const VIEWPORT_RESOLUTIONS: Record<Viewport, { width: number; height: num
 
 export function getScreenResolution(
   viewport?: Viewport,
-  resolution?: { width: number; height: number },
 ): { width: number; height: number } {
-  if (resolution) return resolution
   return VIEWPORT_RESOLUTIONS[viewport ?? "desktop"]
 }
 
@@ -19,7 +17,6 @@ export interface ScreenConfig {
   file: string
   position: { x: number; y: number }
   viewport?: Viewport
-  resolution?: { width: number; height: number }
 }
 
 export interface EdgeConfig {

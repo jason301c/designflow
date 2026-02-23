@@ -27,6 +27,9 @@ describe("ScreenNode", () => {
     parentId: undefined,
     sourcePosition: undefined,
     targetPosition: undefined,
+    selectable: true,
+    deletable: true,
+    draggable: true,
     width: 300,
     height: 200,
     measured: { width: 300, height: 200 },
@@ -137,26 +140,6 @@ describe("ScreenNode", () => {
     expect(inner.style.height).toBe("1024px")
   })
 
-  it("should use explicit resolution over viewport preset", () => {
-    function TestScreen() {
-      return <div>Content</div>
-    }
-    const props = {
-      ...defaultProps,
-      data: {
-        ...defaultProps.data,
-        component: TestScreen,
-        viewport: "mobile" as const,
-        resolution: { width: 1920, height: 1080 },
-      },
-    }
-    render(<ScreenNode {...props} />)
-    const thumbnail = screen.getByTestId("screen-thumbnail")
-    const inner = thumbnail.firstElementChild as HTMLElement
-    expect(inner.style.width).toBe("1920px")
-    expect(inner.style.height).toBe("1080px")
-  })
-
   it("should size thumbnail proportional to resolution", () => {
     function TestScreen() {
       return <div>Content</div>
@@ -182,5 +165,99 @@ describe("ScreenNode", () => {
     }
     render(<ScreenNode {...props} />)
     expect(screen.getByText("390\u00d7844")).toBeInTheDocument()
+  })
+
+  describe("per-screen viewport toggle", () => {
+    it("should render D/T/M viewport toggle buttons", () => {
+      render(<ScreenNode {...defaultProps} />)
+      expect(screen.getByTestId("viewport-toggle")).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: /desktop/i })).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: /tablet/i })).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: /mobile/i })).toBeInTheDocument()
+    })
+
+    it("should default to desktop active", () => {
+      render(<ScreenNode {...defaultProps} />)
+      const desktopBtn = screen.getByRole("button", { name: /desktop/i })
+      expect(desktopBtn).toHaveAttribute("data-active", "true")
+    })
+
+    it("should change thumbnail size when clicking mobile toggle", () => {
+      function TestScreen() {
+        return <div>Content</div>
+      }
+      const props = {
+        ...defaultProps,
+        data: { ...defaultProps.data, component: TestScreen },
+      }
+      render(<ScreenNode {...props} />)
+      // Initially desktop: 1440x900
+      const thumbnail = screen.getByTestId("screen-thumbnail")
+      const inner = thumbnail.firstElementChild as HTMLElement
+      expect(inner.style.width).toBe("1440px")
+
+      // Click mobile
+      fireEvent.click(screen.getByRole("button", { name: /mobile/i }))
+
+      // Now should be mobile: 390x844
+      expect(inner.style.width).toBe("390px")
+      expect(inner.style.height).toBe("844px")
+    })
+
+    it("should change thumbnail size when clicking tablet toggle", () => {
+      function TestScreen() {
+        return <div>Content</div>
+      }
+      const props = {
+        ...defaultProps,
+        data: { ...defaultProps.data, component: TestScreen },
+      }
+      render(<ScreenNode {...props} />)
+
+      fireEvent.click(screen.getByRole("button", { name: /tablet/i }))
+
+      const thumbnail = screen.getByTestId("screen-thumbnail")
+      const inner = thumbnail.firstElementChild as HTMLElement
+      expect(inner.style.width).toBe("768px")
+      expect(inner.style.height).toBe("1024px")
+    })
+
+    it("should update active state when viewport toggle is clicked", () => {
+      render(<ScreenNode {...defaultProps} />)
+      const mobileBtn = screen.getByRole("button", { name: /mobile/i })
+      const desktopBtn = screen.getByRole("button", { name: /desktop/i })
+
+      fireEvent.click(mobileBtn)
+
+      expect(mobileBtn).toHaveAttribute("data-active", "true")
+      expect(desktopBtn).toHaveAttribute("data-active", "false")
+    })
+
+    it("should initialize with viewport from data prop", () => {
+      const props = {
+        ...defaultProps,
+        data: { ...defaultProps.data, viewport: "tablet" as const },
+      }
+      render(<ScreenNode {...props} />)
+      const tabletBtn = screen.getByRole("button", { name: /tablet/i })
+      expect(tabletBtn).toHaveAttribute("data-active", "true")
+    })
+
+    it("should update resolution badge when viewport changes", () => {
+      function TestScreen() {
+        return <div>Content</div>
+      }
+      const props = {
+        ...defaultProps,
+        data: { ...defaultProps.data, component: TestScreen },
+      }
+      render(<ScreenNode {...props} />)
+      // Desktop badge
+      expect(screen.getByText("1440\u00d7900")).toBeInTheDocument()
+
+      // Switch to mobile
+      fireEvent.click(screen.getByRole("button", { name: /mobile/i }))
+      expect(screen.getByText("390\u00d7844")).toBeInTheDocument()
+    })
   })
 })

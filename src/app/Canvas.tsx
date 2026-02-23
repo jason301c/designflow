@@ -32,7 +32,6 @@ function configToNodes(
       onSelect: onScreenSelect,
       component: screens?.[id],
       viewport: screen.viewport,
-      resolution: screen.resolution,
     },
   }))
 }

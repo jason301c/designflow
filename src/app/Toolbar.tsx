@@ -1,21 +1,7 @@
-import { useState } from "react"
 import { useReactFlow } from "@xyflow/react"
-import type { Viewport } from "../types"
 
-interface ToolbarProps {
-  onViewportChange?: (viewport: Viewport) => void
-}
-
-const viewportPresets: Viewport[] = ["desktop", "tablet", "mobile"]
-
-export function Toolbar({ onViewportChange }: ToolbarProps) {
+export function Toolbar() {
   const { zoomIn, zoomOut, fitView } = useReactFlow()
-  const [activePreset, setActivePreset] = useState<Viewport>("desktop")
-
-  const handlePresetClick = (preset: Viewport) => {
-    setActivePreset(preset)
-    onViewportChange?.(preset)
-  }
 
   return (
     <div
@@ -45,24 +31,6 @@ export function Toolbar({ onViewportChange }: ToolbarProps) {
       <button aria-label="Fit view" onClick={() => fitView()} style={btnStyle}>
         ⊞
       </button>
-
-      <div style={{ width: 1, height: 20, background: "#e2e8f0", margin: "0 2px" }} />
-
-      {viewportPresets.map((preset) => (
-        <button
-          key={preset}
-          aria-label={preset}
-          data-active={String(activePreset === preset)}
-          onClick={() => handlePresetClick(preset)}
-          style={{
-            ...btnStyle,
-            background: activePreset === preset ? "#f1f5f9" : "transparent",
-            fontWeight: activePreset === preset ? 600 : 400,
-          }}
-        >
-          {preset.charAt(0).toUpperCase() + preset.slice(1)}
-        </button>
-      ))}
     </div>
   )
 }

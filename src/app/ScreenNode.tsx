@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Handle, Position } from "@xyflow/react"
 import type { NodeProps, Node } from "@xyflow/react"
 import type { ComponentType } from "react"
@@ -10,16 +11,22 @@ export type ScreenNodeData = {
   onSelect: (screenId: string) => void
   component?: ComponentType
   viewport?: Viewport
-  resolution?: { width: number; height: number }
 }
 
 export type ScreenNodeType = Node<ScreenNodeData, "screen">
 
 const MAX_THUMBNAIL_DIM = 420
 
+const viewportLabels: { key: Viewport; label: string }[] = [
+  { key: "desktop", label: "D" },
+  { key: "tablet", label: "T" },
+  { key: "mobile", label: "M" },
+]
+
 export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
   const ScreenComponent = data.component
-  const { width: fullWidth, height: fullHeight } = getScreenResolution(data.viewport, data.resolution)
+  const [activeViewport, setActiveViewport] = useState<Viewport>(data.viewport ?? "desktop")
+  const { width: fullWidth, height: fullHeight } = getScreenResolution(activeViewport)
   const scale = MAX_THUMBNAIL_DIM / Math.max(fullWidth, fullHeight)
   const thumbnailWidth = Math.round(fullWidth * scale)
   const thumbnailHeight = Math.round(fullHeight * scale)
@@ -47,6 +54,37 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
         }}
       >
         {data.title}
+      </div>
+      <div
+        data-testid="viewport-toggle"
+        style={{
+          display: "flex",
+          gap: "4px",
+          marginBottom: "8px",
+          padding: "0 4px",
+        }}
+      >
+        {viewportLabels.map(({ key, label }) => (
+          <button
+            key={key}
+            aria-label={key}
+            data-active={String(activeViewport === key)}
+            onClick={() => setActiveViewport(key)}
+            style={{
+              border: "1px solid #e2e8f0",
+              background: activeViewport === key ? "#f1f5f9" : "transparent",
+              fontWeight: activeViewport === key ? 600 : 400,
+              cursor: "pointer",
+              padding: "2px 8px",
+              borderRadius: 9999,
+              fontSize: 10,
+              lineHeight: 1.4,
+              color: "#334155",
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
       <div
         data-testid="screen-thumbnail"
