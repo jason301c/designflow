@@ -56,3 +56,52 @@ export function generateThemeCSS(theme: Partial<DesignFlowTheme>): string {
 
   return `:root {\n${props.join("\n")}\n}`
 }
+
+export function generateThemeFile(theme: DesignFlowTheme): string {
+  return `import type { DesignFlowTheme } from "designflow"
+
+const theme: DesignFlowTheme = ${JSON.stringify(theme, null, 2)}
+
+export default theme
+`
+}
+
+export function generateTailwindConfig(theme: DesignFlowTheme): string {
+  const colors: Record<string, string> = {}
+  for (const [key, value] of Object.entries(theme.colors)) {
+    colors[camelToKebab(key)] = value
+  }
+
+  const spacing: Record<string, string> = {}
+  for (const [key, value] of Object.entries(theme.spacing)) {
+    spacing[key] = value
+  }
+
+  const borderRadius: Record<string, string> = {}
+  for (const [key, value] of Object.entries(theme.radius)) {
+    borderRadius[key] = value
+  }
+
+  const config = {
+    content: ["./screens/**/*.tsx"],
+    theme: {
+      extend: {
+        colors,
+        spacing,
+        borderRadius,
+        fontFamily: {
+          sans: [theme.typography.fontFamily],
+        },
+        boxShadow: { ...theme.shadows },
+      },
+    },
+    plugins: [],
+  }
+
+  return `import type { Config } from "tailwindcss"
+
+const config: Config = ${JSON.stringify(config, null, 2)}
+
+export default config
+`
+}

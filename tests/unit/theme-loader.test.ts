@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { generateThemeCSS } from "../../src/runtime/theme-loader"
+import { generateThemeCSS, generateThemeFile, generateTailwindConfig } from "../../src/runtime/theme-loader"
 import { sampleTheme } from "../fixtures/sample-theme"
 
 describe("generateThemeCSS", () => {
@@ -56,5 +56,82 @@ describe("generateThemeCSS", () => {
     const css = generateThemeCSS(partial)
     expect(css).toContain("--df-primary: #000;")
     expect(css).not.toContain("--df-radius")
+  })
+})
+
+describe("generateThemeFile", () => {
+  it("should generate a valid TypeScript file with theme export", () => {
+    const file = generateThemeFile(sampleTheme)
+    expect(file).toContain('import type { DesignFlowTheme } from "designflow"')
+    expect(file).toContain("const theme: DesignFlowTheme =")
+    expect(file).toContain("export default theme")
+  })
+
+  it("should include all theme colors in the output", () => {
+    const file = generateThemeFile(sampleTheme)
+    expect(file).toContain('"primary"')
+    expect(file).toContain('"#2563EB"')
+    expect(file).toContain('"secondary"')
+  })
+
+  it("should include radius values", () => {
+    const file = generateThemeFile(sampleTheme)
+    expect(file).toContain('"sm"')
+    expect(file).toContain('"4px"')
+  })
+
+  it("should produce parseable JSON for the theme object", () => {
+    const file = generateThemeFile(sampleTheme)
+    // Extract JSON from between "= " and the next newline before "export"
+    const jsonStr = file.split("const theme: DesignFlowTheme = ")[1].split("\n\nexport")[0]
+    const parsed = JSON.parse(jsonStr)
+    expect(parsed.colors.primary).toBe("#2563EB")
+    expect(parsed.radius.sm).toBe("4px")
+  })
+})
+
+describe("generateTailwindConfig", () => {
+  it("should generate a valid TypeScript Tailwind config", () => {
+    const config = generateTailwindConfig(sampleTheme)
+    expect(config).toContain('import type { Config } from "tailwindcss"')
+    expect(config).toContain("const config: Config =")
+    expect(config).toContain("export default config")
+  })
+
+  it("should include color tokens mapped to kebab-case", () => {
+    const config = generateTailwindConfig(sampleTheme)
+    expect(config).toContain('"primary"')
+    expect(config).toContain('"surface-alt"')
+    expect(config).toContain('"text-muted"')
+  })
+
+  it("should include spacing tokens", () => {
+    const config = generateTailwindConfig(sampleTheme)
+    expect(config).toContain('"xs"')
+    expect(config).toContain('"4px"')
+    expect(config).toContain('"xxl"')
+  })
+
+  it("should include border radius tokens", () => {
+    const config = generateTailwindConfig(sampleTheme)
+    expect(config).toContain('"borderRadius"')
+    expect(config).toContain('"full"')
+    expect(config).toContain('"9999px"')
+  })
+
+  it("should include font family", () => {
+    const config = generateTailwindConfig(sampleTheme)
+    expect(config).toContain('"fontFamily"')
+    expect(config).toContain("Inter, system-ui, sans-serif")
+  })
+
+  it("should include box shadow tokens", () => {
+    const config = generateTailwindConfig(sampleTheme)
+    expect(config).toContain('"boxShadow"')
+  })
+
+  it("should include content glob for screens", () => {
+    const config = generateTailwindConfig(sampleTheme)
+    expect(config).toContain("./screens/**/*.tsx")
   })
 })
