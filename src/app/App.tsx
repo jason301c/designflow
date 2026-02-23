@@ -12,19 +12,25 @@ interface AppProps {
 
 export function App({ config, screens }: AppProps) {
   const [viewingScreen, setViewingScreen] = useState<string | null>(null)
+  const [focusNodeId, setFocusNodeId] = useState<string | null>(null)
 
   const viewingConfig = viewingScreen ? config.screens[viewingScreen] : null
+
+  const handleCloseViewer = () => {
+    setFocusNodeId(viewingScreen)
+    setViewingScreen(null)
+  }
 
   return (
     <ReactFlowProvider>
       <div style={{ width: "100vw", height: "100vh", position: "relative" }}>
-        <Canvas config={config} onScreenSelect={setViewingScreen} />
+        <Canvas config={config} onScreenSelect={setViewingScreen} focusNodeId={focusNodeId} />
         {viewingScreen && viewingConfig && screens[viewingScreen] && (
           <Viewer
             screenId={viewingScreen}
             screenTitle={viewingConfig.title}
             component={screens[viewingScreen]}
-            onClose={() => setViewingScreen(null)}
+            onClose={handleCloseViewer}
           />
         )}
       </div>

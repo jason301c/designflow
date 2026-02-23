@@ -48,4 +48,38 @@ describe("ScreenNode", () => {
     fireEvent.doubleClick(screen.getByText("Login"))
     expect(defaultProps.data.onSelect).toHaveBeenCalledWith("login")
   })
+
+  it("should render screen component when provided", () => {
+    function TestScreen() {
+      return <div data-testid="test-screen">Screen Content</div>
+    }
+    const props = {
+      ...defaultProps,
+      data: { ...defaultProps.data, component: TestScreen },
+    }
+    render(<ScreenNode {...props} />)
+    expect(screen.getByTestId("test-screen")).toBeInTheDocument()
+    expect(screen.getByText("Screen Content")).toBeInTheDocument()
+  })
+
+  it("should have a thumbnail container with data-testid", () => {
+    render(<ScreenNode {...defaultProps} />)
+    expect(screen.getByTestId("screen-thumbnail")).toBeInTheDocument()
+  })
+
+  it("should apply scale transform to thumbnail content", () => {
+    function TestScreen() {
+      return <div>Content</div>
+    }
+    const props = {
+      ...defaultProps,
+      data: { ...defaultProps.data, component: TestScreen },
+    }
+    render(<ScreenNode {...props} />)
+    const thumbnail = screen.getByTestId("screen-thumbnail")
+    // The inner content wrapper should have a transform scale
+    const inner = thumbnail.firstElementChild
+    expect(inner).toBeTruthy()
+    expect((inner as HTMLElement).style.transform).toContain("scale")
+  })
 })

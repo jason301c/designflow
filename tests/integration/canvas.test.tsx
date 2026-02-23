@@ -31,6 +31,7 @@ vi.mock("@xyflow/react", () => {
     useNodesState: (initial: any) => [initial, vi.fn(), vi.fn()],
     useEdgesState: (initial: any) => [initial, vi.fn(), vi.fn()],
     ReactFlowProvider: ({ children }: any) => <div>{children}</div>,
+    useReactFlow: () => ({ fitView: vi.fn(), setCenter: vi.fn() }),
   }
 })
 
@@ -75,6 +76,11 @@ describe("Canvas", () => {
   it("should handle empty config", () => {
     const emptyConfig: DesignFlowConfig = { screens: {} }
     render(<Canvas config={emptyConfig} onScreenSelect={vi.fn()} />)
+    expect(screen.getByTestId("react-flow")).toBeInTheDocument()
+  })
+
+  it("should accept focusNodeId prop", () => {
+    render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} focusNodeId="login" />)
     expect(screen.getByTestId("react-flow")).toBeInTheDocument()
   })
 })

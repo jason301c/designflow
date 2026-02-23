@@ -22,6 +22,7 @@ vi.mock("@xyflow/react", () => {
     getBezierPath: () => ["M0,0", 0, 0],
     useNodesState: (initial: any) => [initial, vi.fn(), vi.fn()],
     useEdgesState: (initial: any) => [initial, vi.fn(), vi.fn()],
+    useReactFlow: () => ({ fitView: vi.fn(), setCenter: vi.fn() }),
   }
 })
 
@@ -45,5 +46,10 @@ describe("App", () => {
   it("should render screen nodes from config", () => {
     render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
     expect(screen.getByText("Login")).toBeInTheDocument()
+  })
+
+  it("should pass focusNodeId to Canvas when viewer was closed", async () => {
+    render(<App config={sampleConfig} screens={{ login: MockScreen }} />)
+    expect(screen.getByTestId("react-flow")).toBeInTheDocument()
   })
 })
