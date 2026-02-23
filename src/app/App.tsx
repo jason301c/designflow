@@ -65,6 +65,7 @@ export function App({ config, screens, inferredEdges }: AppProps) {
         />
         {viewingScreen && viewingConfig && screens[viewingScreen] && (
           <Viewer
+            key={viewingScreen}
             screenId={viewingScreen}
             screenTitle={viewingConfig.title}
             component={screens[viewingScreen]}
