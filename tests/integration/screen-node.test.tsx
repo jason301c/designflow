@@ -45,13 +45,14 @@ describe("ScreenNode", () => {
     return getColorSchemeWrapper().firstElementChild as HTMLElement
   }
 
-  it("should render screen title as overlaid pill", () => {
+  it("should render screen title inside pill bar", () => {
     render(<ScreenNode {...defaultProps} />)
     const title = screen.getByTestId("node-title")
     expect(title).toBeInTheDocument()
     expect(title.textContent).toBe("Login")
-    // Title should be positioned absolutely inside the thumbnail
-    expect(title.style.position).toBe("absolute")
+    // Title should be inside the controls pill, not the thumbnail
+    const controls = screen.getByTestId("node-controls")
+    expect(controls.contains(title)).toBe(true)
   })
 
   it("should have left target and right source handles", () => {
@@ -169,18 +170,6 @@ describe("ScreenNode", () => {
     expect(thumbnail.style.height).toBe("420px")
   })
 
-  it("should display resolution badge", () => {
-    function TestScreen() {
-      return <div>Content</div>
-    }
-    const props = {
-      ...defaultProps,
-      data: { ...defaultProps.data, component: TestScreen, viewport: "mobile" as const },
-    }
-    render(<ScreenNode {...props} />)
-    expect(screen.getByText("390\u00d7844")).toBeInTheDocument()
-  })
-
   describe("per-screen viewport toggle", () => {
     it("should render D/T/M viewport toggle buttons", () => {
       render(<ScreenNode {...defaultProps} />)
@@ -254,22 +243,6 @@ describe("ScreenNode", () => {
       expect(tabletBtn).toHaveAttribute("data-active", "true")
     })
 
-    it("should update resolution badge when viewport changes", () => {
-      function TestScreen() {
-        return <div>Content</div>
-      }
-      const props = {
-        ...defaultProps,
-        data: { ...defaultProps.data, component: TestScreen },
-      }
-      render(<ScreenNode {...props} />)
-      // Desktop badge
-      expect(screen.getByText("1440\u00d7900")).toBeInTheDocument()
-
-      // Switch to mobile
-      fireEvent.click(screen.getByRole("button", { name: /mobile/i }))
-      expect(screen.getByText("390\u00d7844")).toBeInTheDocument()
-    })
   })
 
   describe("per-screen color scheme toggle", () => {

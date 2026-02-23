@@ -46,22 +46,33 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
     >
       <Handle type="target" position={Position.Left} id="target-left" />
 
-      {/* Pill bar with controls */}
+      {/* Pill bar with title and controls */}
       <div
         data-testid="node-controls"
         style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
           gap: "4px",
           padding: "4px 10px",
           marginBottom: "6px",
           background: "#fff",
           border: "1px solid #e2e8f0",
           borderRadius: 9999,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
         }}
       >
+        <span
+          data-testid="node-title"
+          style={{
+            fontSize: "11px",
+            fontWeight: 600,
+            color: "#0f172a",
+            whiteSpace: "nowrap",
+            marginRight: "4px",
+          }}
+        >
+          {data.title}
+        </span>
+        <div style={{ width: 1, height: 14, background: "#e2e8f0" }} />
         <div
           data-testid="viewport-toggle"
           style={{
@@ -130,69 +141,30 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
           width: `${thumbnailWidth}px`,
           height: `${thumbnailHeight}px`,
           background: isDark ? "#0f172a" : "#f8fafc",
-          borderRadius: "8px",
+          border: "1px solid #e2e8f0",
+          borderRadius: 0,
           overflow: "hidden",
           position: "relative",
         }}
       >
-        {/* Overlaid title pill */}
-        <div
-          data-testid="node-title"
-          style={{
-            position: "absolute",
-            top: "8px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 2,
-            background: "rgba(255,255,255,0.92)",
-            backdropFilter: "blur(4px)",
-            padding: "3px 12px",
-            borderRadius: 9999,
-            fontSize: "11px",
-            fontWeight: 600,
-            color: "#0f172a",
-            whiteSpace: "nowrap",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-          }}
-        >
-          {data.title}
-        </div>
-
         {ScreenComponent ? (
-          <>
-            <div
-              style={{ colorScheme: activeColorScheme }}
-              className={isDark ? "dark" : ""}
-              data-df-color-scheme={activeColorScheme}
-            >
-              <div
-                style={{
-                  width: `${fullWidth}px`,
-                  height: `${fullHeight}px`,
-                  transform: `scale(${scale})`,
-                  transformOrigin: "top left",
-                  pointerEvents: "none",
-                }}
-              >
-                <ScreenComponent />
-              </div>
-            </div>
+          <div
+            style={{ colorScheme: activeColorScheme }}
+            className={isDark ? "dark" : ""}
+            data-df-color-scheme={activeColorScheme}
+          >
             <div
               style={{
-                position: "absolute",
-                bottom: "4px",
-                right: "4px",
-                fontSize: "9px",
-                color: "#94a3b8",
-                background: "rgba(255,255,255,0.85)",
-                padding: "1px 4px",
-                borderRadius: "2px",
-                lineHeight: 1.2,
+                width: `${fullWidth}px`,
+                height: `${fullHeight}px`,
+                transform: `scale(${scale})`,
+                transformOrigin: "top left",
+                pointerEvents: "none",
               }}
             >
-              {fullWidth}&times;{fullHeight}
+              <ScreenComponent />
             </div>
-          </>
+          </div>
         ) : (
           <div
             style={{
