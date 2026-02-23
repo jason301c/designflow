@@ -116,7 +116,14 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
 
   useEffect(() => {
     setEdges(configToEdges(config, inferredEdges, settings))
-    setNodes(configToNodes(config, onScreenSelect, screens, settings?.accentColor, settings?.appearance))
+    setNodes((prev) => prev.map((node) => ({
+      ...node,
+      data: {
+        ...node.data,
+        accentColor: settings?.accentColor,
+        colorScheme: settings?.appearance,
+      },
+    })))
   }, [settings?.accentColor, settings?.lineStyle, settings?.appearance])
 
   const onNodeDragStop = useCallback((_event: React.MouseEvent, node: Node) => {

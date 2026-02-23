@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { serializeFlowConfig, updateScreenPosition } from "../../src/runtime/flow-writer"
+import { serializeFlowConfig, updateScreenPosition, updateScreenViewport } from "../../src/runtime/flow-writer"
 import type { DesignFlowConfig } from "../../src/types"
 
 const sampleConfig: DesignFlowConfig = {
@@ -37,6 +37,30 @@ describe("updateScreenPosition", () => {
 
   it("should return unchanged config if screen not found", () => {
     const updated = updateScreenPosition(sampleConfig, "nonexistent", { x: 100, y: 200 })
+    expect(updated).toEqual(sampleConfig)
+  })
+})
+
+describe("updateScreenViewport", () => {
+  it("should update viewport of an existing screen", () => {
+    const updated = updateScreenViewport(sampleConfig, "login", "tablet")
+    expect(updated.screens.login.viewport).toBe("tablet")
+  })
+
+  it("should not modify other screens", () => {
+    const updated = updateScreenViewport(sampleConfig, "login", "tablet")
+    expect(updated.screens.dashboard.viewport).toBe("desktop")
+  })
+
+  it("should preserve all other screen properties", () => {
+    const updated = updateScreenViewport(sampleConfig, "login", "desktop")
+    expect(updated.screens.login.title).toBe("Login")
+    expect(updated.screens.login.file).toBe("./screens/Login.tsx")
+    expect(updated.screens.login.position).toEqual({ x: 0, y: 0 })
+  })
+
+  it("should return unchanged config if screen not found", () => {
+    const updated = updateScreenViewport(sampleConfig, "nonexistent", "mobile")
     expect(updated).toEqual(sampleConfig)
   })
 })

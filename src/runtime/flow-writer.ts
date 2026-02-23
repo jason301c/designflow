@@ -20,6 +20,25 @@ export function updateScreenPosition(
   }
 }
 
+export function updateScreenViewport(
+  config: DesignFlowConfig,
+  screenId: string,
+  viewport: string,
+): DesignFlowConfig {
+  if (!config.screens[screenId]) return config
+
+  return {
+    ...config,
+    screens: {
+      ...config.screens,
+      [screenId]: {
+        ...config.screens[screenId],
+        viewport: viewport as any,
+      },
+    },
+  }
+}
+
 export function serializeFlowConfig(config: DesignFlowConfig): string {
   const screenEntries = Object.entries(config.screens)
     .map(([id, screen]) => {

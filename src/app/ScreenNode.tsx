@@ -56,6 +56,15 @@ const viewportIcons: Record<Viewport, () => React.ReactElement> = {
 export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
   const ScreenComponent = data.component
   const [activeViewport, setActiveViewport] = useState<Viewport>(data.viewport ?? "desktop")
+
+  const handleViewportChange = (viewport: Viewport) => {
+    setActiveViewport(viewport)
+    fetch("/__designflow/update-viewport", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ screenId: data.screenId, viewport }),
+    }).catch(() => {})
+  }
   const [activeColorScheme, setActiveColorScheme] = useState<ColorScheme>(data.colorScheme ?? "light")
 
   useEffect(() => {
@@ -114,7 +123,7 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
           <select
             data-testid="viewport-select"
             value={activeViewport}
-            onChange={(e) => setActiveViewport(e.target.value as Viewport)}
+            onChange={(e) => handleViewportChange(e.target.value as Viewport)}
             style={{
               position: "absolute",
               inset: 0,

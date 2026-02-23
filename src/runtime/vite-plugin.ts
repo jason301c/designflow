@@ -4,7 +4,7 @@ import path from "path"
 import { fileURLToPath } from "url"
 import fs from "fs/promises"
 import { scanScreens, extractNavigationTargets } from "./screen-scanner"
-import { updateScreenPosition, writeFlowConfig } from "./flow-writer"
+import { updateScreenPosition, updateScreenViewport, writeFlowConfig } from "./flow-writer"
 import type { DesignFlowConfig } from "../types"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -151,8 +151,8 @@ export function designflowPlugin(options: DesignflowPluginOptions): Plugin {
               positions: Record<string, { x: number; y: number }>
             }
 
-            // Read current config from flows.ts
-            const flowsModule = await import(flowsPath)
+            // Read current config from flows.ts (cache-bust to get fresh content)
+            const flowsModule = await import(`${flowsPath}?t=${Date.now()}`)
             let config: DesignFlowConfig = flowsModule.default
 
             // Update each position
@@ -161,6 +161,38 @@ export function designflowPlugin(options: DesignflowPluginOptions): Plugin {
             }
 
             // Write back to flows.ts (suppress HMR reload for this save)
+            suppressNextFlowsReload = true
+            await writeFlowConfig(flowsPath, config)
+
+            res.writeHead(200, { "Content-Type": "application/json" })
+            res.end(JSON.stringify({ ok: true }))
+          } catch (err) {
+            res.writeHead(500, { "Content-Type": "application/json" })
+            res.end(JSON.stringify({ error: String(err) }))
+          }
+        })
+      })
+
+      // API middleware for viewport persistence
+      server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
+        if (req.url !== "/__designflow/update-viewport" || req.method !== "POST") {
+          return next()
+        }
+
+        let body = ""
+        req.on("data", (chunk: Buffer) => { body += chunk.toString() })
+        req.on("end", async () => {
+          try {
+            const { screenId, viewport } = JSON.parse(body) as {
+              screenId: string
+              viewport: string
+            }
+
+            const flowsModule = await import(`${flowsPath}?t=${Date.now()}`)
+            let config: DesignFlowConfig = flowsModule.default
+
+            config = updateScreenViewport(config, screenId, viewport)
+
             suppressNextFlowsReload = true
             await writeFlowConfig(flowsPath, config)
 
