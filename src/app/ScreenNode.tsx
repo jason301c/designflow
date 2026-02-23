@@ -15,13 +15,14 @@ export type ScreenNodeData = {
 
 export type ScreenNodeType = Node<ScreenNodeData, "screen">
 
-const THUMBNAIL_WIDTH = 420
-const THUMBNAIL_HEIGHT = 260
+const MAX_THUMBNAIL_DIM = 420
 
 export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
   const ScreenComponent = data.component
   const { width: fullWidth, height: fullHeight } = getScreenResolution(data.viewport, data.resolution)
-  const scale = THUMBNAIL_WIDTH / fullWidth
+  const scale = MAX_THUMBNAIL_DIM / Math.max(fullWidth, fullHeight)
+  const thumbnailWidth = Math.round(fullWidth * scale)
+  const thumbnailHeight = Math.round(fullHeight * scale)
 
   return (
     <div
@@ -31,7 +32,7 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
         border: "1px solid #e2e8f0",
         borderRadius: "8px",
         padding: "8px",
-        width: `${THUMBNAIL_WIDTH}px`,
+        width: `${thumbnailWidth}px`,
         cursor: "pointer",
       }}
     >
@@ -51,8 +52,8 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
       <div
         data-testid="screen-thumbnail"
         style={{
-          width: `${THUMBNAIL_WIDTH}px`,
-          height: `${THUMBNAIL_HEIGHT}px`,
+          width: `${thumbnailWidth}px`,
+          height: `${thumbnailHeight}px`,
           background: "#f8fafc",
           borderRadius: "4px",
           overflow: "hidden",

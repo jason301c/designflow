@@ -100,7 +100,7 @@ describe("ScreenNode", () => {
     render(<ScreenNode {...props} />)
     const thumbnail = screen.getByTestId("screen-thumbnail")
     const inner = thumbnail.firstElementChild as HTMLElement
-    // Default desktop: 1440x900, scale = 420/1440 ≈ 0.2917
+    // Default desktop: 1440x900, scale = 420/max(1440,900) ≈ 0.292
     expect(inner.style.width).toBe("1440px")
     expect(inner.style.height).toBe("900px")
   })
@@ -157,7 +157,7 @@ describe("ScreenNode", () => {
     expect(inner.style.height).toBe("1080px")
   })
 
-  it("should keep thumbnail container at fixed 420x260", () => {
+  it("should size thumbnail proportional to resolution", () => {
     function TestScreen() {
       return <div>Content</div>
     }
@@ -167,8 +167,9 @@ describe("ScreenNode", () => {
     }
     render(<ScreenNode {...props} />)
     const thumbnail = screen.getByTestId("screen-thumbnail")
-    expect(thumbnail.style.width).toBe("420px")
-    expect(thumbnail.style.height).toBe("260px")
+    // Mobile 390x844: scale = 420/844 ≈ 0.498, thumbnail = 194x420
+    expect(thumbnail.style.width).toBe("194px")
+    expect(thumbnail.style.height).toBe("420px")
   })
 
   it("should display resolution badge", () => {
