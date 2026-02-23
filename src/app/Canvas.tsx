@@ -38,25 +38,35 @@ function configToNodes(
   }))
 }
 
+function pairKey(a: string, b: string): string {
+  return a < b ? `${a}:${b}` : `${b}:${a}`
+}
+
 function configToEdges(config: DesignFlowConfig, inferredEdges?: EdgeConfig[]): Edge[] {
-  const explicitEdges: Edge[] = (config.edges ?? []).map((edge) => ({
-    id: `${edge.from}-${edge.to}`,
-    type: "flow",
-    source: edge.from,
-    target: edge.to,
-    sourceHandle: "source-right",
-    targetHandle: "target-left",
-    data: { label: edge.label },
-  }))
+  const seenPairs = new Set<string>()
+
+  const explicitEdges: Edge[] = (config.edges ?? []).map((edge) => {
+    seenPairs.add(pairKey(edge.from, edge.to))
+    return {
+      id: `${edge.from}-${edge.to}`,
+      type: "flow",
+      source: edge.from,
+      target: edge.to,
+      sourceHandle: "source-right",
+      targetHandle: "target-left",
+      data: { label: edge.label },
+    }
+  })
 
   if (!inferredEdges?.length) return explicitEdges
 
-  const explicitKeys = new Set(
-    (config.edges ?? []).map((e) => `${e.from}-${e.to}`)
-  )
-
   const inferred: Edge[] = inferredEdges
-    .filter((e) => !explicitKeys.has(`${e.from}-${e.to}`))
+    .filter((e) => {
+      const key = pairKey(e.from, e.to)
+      if (seenPairs.has(key)) return false
+      seenPairs.add(key)
+      return true
+    })
     .map((edge) => ({
       id: `inferred-${edge.from}-${edge.to}`,
       type: "flow",

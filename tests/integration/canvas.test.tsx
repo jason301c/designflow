@@ -194,6 +194,45 @@ describe("Canvas — inferred edges merging", () => {
     const edges = JSON.parse(rfEl.getAttribute("data-edges") || "[]")
     expect(edges).toHaveLength(1)
   })
+
+  it("should collapse reverse-direction edges into one per unordered pair", () => {
+    // Explicit: login→dashboard, Inferred: dashboard→login
+    // Should only produce one edge for the (login, dashboard) pair
+    const reverseInferred = [
+      { from: "dashboard", to: "login", label: "navigate", inferred: true },
+      { from: "login", to: "settings", label: "navigate", inferred: true },
+    ]
+    render(<Canvas config={configWithEdge} inferredEdges={reverseInferred} onScreenSelect={vi.fn()} />)
+    const rfEl = screen.getByTestId("react-flow")
+    const edges = JSON.parse(rfEl.getAttribute("data-edges") || "[]")
+    // login↔dashboard = 1 edge (explicit wins), login→settings = 1 inferred edge
+    expect(edges).toHaveLength(2)
+    // The explicit login→dashboard should be kept
+    const loginDash = edges.find((e: any) => e.id === "login-dashboard")
+    expect(loginDash).toBeDefined()
+    expect(loginDash.data.label).toBe("Sign in")
+    // No reverse dashboard→login edge
+    const dashLogin = edges.find((e: any) => e.source === "dashboard" && e.target === "login")
+    expect(dashLogin).toBeUndefined()
+  })
+
+  it("should deduplicate inferred edges that form a reverse pair", () => {
+    const configNoEdges: DesignFlowConfig = {
+      screens: {
+        login: { title: "Login", file: "./screens/Login.tsx", position: { x: 0, y: 0 } },
+        dashboard: { title: "Dashboard", file: "./screens/Dashboard.tsx", position: { x: 450, y: 0 } },
+      },
+    }
+    const bidirectionalInferred = [
+      { from: "login", to: "dashboard", label: "navigate", inferred: true },
+      { from: "dashboard", to: "login", label: "navigate", inferred: true },
+    ]
+    render(<Canvas config={configNoEdges} inferredEdges={bidirectionalInferred} onScreenSelect={vi.fn()} />)
+    const rfEl = screen.getByTestId("react-flow")
+    const edges = JSON.parse(rfEl.getAttribute("data-edges") || "[]")
+    // Only one edge for the (login, dashboard) pair
+    expect(edges).toHaveLength(1)
+  })
 })
 
 describe("Canvas — position persistence", () => {
