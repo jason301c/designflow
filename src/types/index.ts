@@ -53,7 +53,10 @@ export interface EdgeConfig {
   inferred?: boolean
 }
 
+export const DEFAULT_PROJECT_NAME = "My Designflow Project"
+
 export interface DesignFlowConfig {
+  name?: string
   screens: Record<string, ScreenConfig>
   edges?: EdgeConfig[]
 }

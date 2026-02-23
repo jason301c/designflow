@@ -61,6 +61,7 @@ export function App({ config, screens, inferredEdges }: AppProps) {
           inferredEdges={inferredEdges}
           settings={settings}
           onSettingsChange={handleSettingsChange}
+          projectName={config.name}
         />
         {viewingScreen && viewingConfig && screens[viewingScreen] && (
           <Viewer

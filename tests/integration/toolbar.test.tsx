@@ -212,7 +212,7 @@ describe("Toolbar", () => {
     it("should call exportCanvasPng on click", () => {
       render(<Toolbar />)
       fireEvent.click(screen.getByTestId("export-canvas-png"))
-      expect(mockExportCanvasPng).toHaveBeenCalledWith(mockGetNodes, { backgroundColor: "#ffffff" })
+      expect(mockExportCanvasPng).toHaveBeenCalledWith(mockGetNodes, { backgroundColor: "#ffffff", projectName: undefined })
     })
 
     it("should pass black background when dark mode", () => {
@@ -220,7 +220,13 @@ describe("Toolbar", () => {
       const darkSettings = { ...defaultSettings, appearance: "dark" as const }
       render(<Toolbar settings={darkSettings} onSettingsChange={onChange} />)
       fireEvent.click(screen.getByTestId("export-canvas-png"))
-      expect(mockExportCanvasPng).toHaveBeenCalledWith(mockGetNodes, { backgroundColor: "#000000" })
+      expect(mockExportCanvasPng).toHaveBeenCalledWith(mockGetNodes, { backgroundColor: "#000000", projectName: undefined })
+    })
+
+    it("should pass project name to exportCanvasPng", () => {
+      render(<Toolbar projectName="My App" />)
+      fireEvent.click(screen.getByTestId("export-canvas-png"))
+      expect(mockExportCanvasPng).toHaveBeenCalledWith(mockGetNodes, { backgroundColor: "#ffffff", projectName: "My App" })
     })
   })
 })

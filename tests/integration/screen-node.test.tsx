@@ -403,7 +403,17 @@ describe("ScreenNode", () => {
     it("should call exportScreenPng with screenId on click", () => {
       render(<ScreenNode {...defaultProps} />)
       fireEvent.click(screen.getByTestId("export-screen-png"))
-      expect(mockExportScreenPng).toHaveBeenCalledWith("login")
+      expect(mockExportScreenPng).toHaveBeenCalledWith("login", undefined)
+    })
+
+    it("should pass project name to exportScreenPng", () => {
+      const props = {
+        ...defaultProps,
+        data: { ...defaultProps.data, projectName: "Cool App" },
+      }
+      render(<ScreenNode {...props} />)
+      fireEvent.click(screen.getByTestId("export-screen-png"))
+      expect(mockExportScreenPng).toHaveBeenCalledWith("login", "Cool App")
     })
 
     it("should have data-df-screen-id on root element", () => {

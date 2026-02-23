@@ -28,4 +28,14 @@ describe("buildDevHtml", () => {
     expect(html).toContain("</html>")
     expect(html).toContain('<div id="root">')
   })
+
+  it("should use project name in title when provided", () => {
+    const html = buildDevHtml({ hasStylesCSS: false, projectName: "My App" })
+    expect(html).toContain("<title>My App — DesignFlow</title>")
+  })
+
+  it("should use plain DesignFlow title when no project name", () => {
+    const html = buildDevHtml({ hasStylesCSS: false })
+    expect(html).toContain("<title>DesignFlow</title>")
+  })
 })

@@ -7,6 +7,7 @@ import { DEFAULT_THEME } from "../runtime/default-theme"
 export interface InitOptions {
   dir: string
   tailwind?: boolean
+  name?: string
 }
 
 export async function runInit(options: InitOptions): Promise<void> {
@@ -46,6 +47,13 @@ export async function runInit(options: InitOptions): Promise<void> {
     const srcPath = path.join(templatesDir, file.src)
     const destPath = path.join(dir, file.dest)
     await fs.copyFile(srcPath, destPath)
+  }
+
+  // Replace project name in flows.ts if --name was provided
+  if (options.name) {
+    const flowsPath = path.join(dir, "flows.ts")
+    const flowsContent = await fs.readFile(flowsPath, "utf-8")
+    await fs.writeFile(flowsPath, flowsContent.replace("My Designflow Project", options.name))
   }
 
   // Generate styles.css with Tailwind v4 @theme block if requested

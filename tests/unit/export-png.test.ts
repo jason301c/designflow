@@ -14,11 +14,29 @@ vi.mock("@xyflow/react", () => ({
   getViewportForBounds: (...args: any[]) => mockGetViewportForBounds(...args),
 }))
 
-import { exportCanvasPng, exportScreenPng } from "../../src/app/export-png"
+import { exportCanvasPng, exportScreenPng, slugify } from "../../src/app/export-png"
+
+describe("slugify", () => {
+  it("should lowercase and replace spaces with hyphens", () => {
+    expect(slugify("My Cool App")).toBe("my-cool-app")
+  })
+
+  it("should strip non-alphanumeric characters", () => {
+    expect(slugify("App (v2.0)!")).toBe("app-v2-0")
+  })
+
+  it("should trim leading/trailing hyphens", () => {
+    expect(slugify("  Hello World  ")).toBe("hello-world")
+  })
+
+  it("should collapse multiple hyphens", () => {
+    expect(slugify("a---b")).toBe("a-b")
+  })
+})
 
 describe("exportCanvasPng", () => {
   let mockViewportEl: HTMLDivElement
-  let clickSpy: ReturnType<typeof vi.fn>
+  let mockAnchor: { click: ReturnType<typeof vi.fn>; href: string; download: string; style: any }
   let revokeURLSpy: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
@@ -34,13 +52,10 @@ describe("exportCanvasPng", () => {
     globalThis.URL.createObjectURL = vi.fn(() => "blob:mock-url")
     globalThis.URL.revokeObjectURL = revokeURLSpy
 
-    // Mock anchor click
-    clickSpy = vi.fn()
+    // Mock anchor
+    mockAnchor = { click: vi.fn(), href: "", download: "", style: {} }
     vi.spyOn(document, "createElement").mockImplementation((tag: string) => {
-      if (tag === "a") {
-        const anchor = { click: clickSpy, href: "", download: "", style: {} } as any
-        return anchor
-      }
+      if (tag === "a") return mockAnchor as any
       return document.createElement.call(document, tag)
     })
 
@@ -98,12 +113,21 @@ describe("exportCanvasPng", () => {
     })
   })
 
-  it("should trigger download with correct filename", async () => {
+  it("should download with default filename when no project name", async () => {
     const getNodes = vi.fn(() => [{ id: "a" }])
 
     await exportCanvasPng(getNodes)
 
-    expect(clickSpy).toHaveBeenCalled()
+    expect(mockAnchor.download).toBe("designflow-canvas.png")
+    expect(mockAnchor.click).toHaveBeenCalled()
+  })
+
+  it("should use slugified project name in filename", async () => {
+    const getNodes = vi.fn(() => [{ id: "a" }])
+
+    await exportCanvasPng(getNodes, { projectName: "My Cool App" })
+
+    expect(mockAnchor.download).toBe("my-cool-app-canvas.png")
   })
 
   it("should handle missing viewport element gracefully", async () => {
@@ -130,7 +154,7 @@ describe("exportCanvasPng", () => {
 
 describe("exportScreenPng", () => {
   let mockContentEl: HTMLDivElement
-  let clickSpy: ReturnType<typeof vi.fn>
+  let mockAnchor: { click: ReturnType<typeof vi.fn>; href: string; download: string; style: any }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -152,13 +176,10 @@ describe("exportScreenPng", () => {
     wrapper.appendChild(thumbnail)
     document.body.appendChild(wrapper)
 
-    // Mock anchor click
-    clickSpy = vi.fn()
+    // Mock anchor
+    mockAnchor = { click: vi.fn(), href: "", download: "", style: {} }
     vi.spyOn(document, "createElement").mockImplementation((tag: string) => {
-      if (tag === "a") {
-        const anchor = { click: clickSpy, href: "", download: "", style: {} } as any
-        return anchor
-      }
+      if (tag === "a") return mockAnchor as any
       return document.createElement.call(document, tag)
     })
 
@@ -188,10 +209,17 @@ describe("exportScreenPng", () => {
     })
   })
 
-  it("should trigger download with correct filename", async () => {
+  it("should download with default filename when no project name", async () => {
     await exportScreenPng("login")
 
-    expect(clickSpy).toHaveBeenCalled()
+    expect(mockAnchor.download).toBe("designflow-login.png")
+    expect(mockAnchor.click).toHaveBeenCalled()
+  })
+
+  it("should use slugified project name in filename", async () => {
+    await exportScreenPng("login", "My Cool App")
+
+    expect(mockAnchor.download).toBe("my-cool-app-login.png")
   })
 
   it("should handle missing screen element gracefully", async () => {

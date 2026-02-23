@@ -17,6 +17,7 @@ interface CanvasProps {
   inferredEdges?: EdgeConfig[]
   settings?: CanvasSettings
   onSettingsChange?: (settings: CanvasSettings) => void
+  projectName?: string
 }
 
 function configToNodes(
@@ -25,6 +26,7 @@ function configToNodes(
   screens?: Record<string, ComponentType>,
   accentColor?: string,
   colorScheme?: "light" | "dark",
+  projectName?: string,
 ): Node[] {
   return Object.entries(config.screens).map(([id, screen]) => ({
     id,
@@ -38,6 +40,7 @@ function configToNodes(
       viewport: screen.viewport,
       accentColor,
       colorScheme,
+      projectName,
     },
   }))
 }
@@ -107,8 +110,8 @@ const bgVariantMap = {
   dots: BackgroundVariant.Dots,
 }
 
-export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredEdges, settings, onSettingsChange }: CanvasProps) {
-  const initialNodes = configToNodes(config, onScreenSelect, screens, settings?.accentColor, settings?.appearance)
+export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredEdges, settings, onSettingsChange, projectName }: CanvasProps) {
+  const initialNodes = configToNodes(config, onScreenSelect, screens, settings?.accentColor, settings?.appearance, projectName)
   const initialEdges = configToEdges(config, inferredEdges, settings)
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
@@ -122,6 +125,7 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
         ...node.data,
         accentColor: settings?.accentColor,
         colorScheme: settings?.appearance,
+        projectName,
       },
     })))
   }, [settings?.accentColor, settings?.lineStyle, settings?.appearance])
@@ -163,7 +167,7 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
             style={{ opacity: settings.backgroundStyle === "dots" ? 0.7 : 0.4 }}
           />
         )}
-        <Toolbar settings={settings} onSettingsChange={onSettingsChange} />
+        <Toolbar settings={settings} onSettingsChange={onSettingsChange} projectName={projectName} />
         <LogoBadge dark={isDarkCanvas} />
       </ReactFlow>
     </div>

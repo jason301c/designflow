@@ -1,6 +1,7 @@
 import type { DesignFlowConfig } from "designflow"
 
 const config: DesignFlowConfig = {
+  name: "My Designflow Project",
   screens: {
     login: {
       title: "Login",

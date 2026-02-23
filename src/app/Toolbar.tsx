@@ -7,9 +7,10 @@ import { exportCanvasPng } from "./export-png"
 interface ToolbarProps {
   settings?: CanvasSettings
   onSettingsChange?: (settings: CanvasSettings) => void
+  projectName?: string
 }
 
-export function Toolbar({ settings, onSettingsChange }: ToolbarProps) {
+export function Toolbar({ settings, onSettingsChange, projectName }: ToolbarProps) {
   const { zoomIn, zoomOut, fitView, getNodes } = useReactFlow()
   const [open, setOpen] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -70,7 +71,7 @@ export function Toolbar({ settings, onSettingsChange }: ToolbarProps) {
       <button
         data-testid="export-canvas-png"
         aria-label="Export canvas as PNG"
-        onClick={() => exportCanvasPng(getNodes, { backgroundColor: isDark ? "#000000" : "#ffffff" })}
+        onClick={() => exportCanvasPng(getNodes, { backgroundColor: isDark ? "#000000" : "#ffffff", projectName })}
         style={{ ...btnStyle, color: isDark ? "#e2e8f0" : "#334155" }}
       >
         ⤓

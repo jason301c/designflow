@@ -6,7 +6,7 @@ import type {
   DesignFlowTheme,
   Viewport,
 } from "../../src/types"
-import { VIEWPORT_RESOLUTIONS, getScreenResolution } from "../../src/types"
+import { VIEWPORT_RESOLUTIONS, getScreenResolution, DEFAULT_PROJECT_NAME } from "../../src/types"
 
 describe("Types", () => {
   it("should accept valid Viewport values", () => {
@@ -66,6 +66,14 @@ describe("Types", () => {
 
   it("should return default desktop resolution when no viewport given", () => {
     expect(getScreenResolution()).toEqual({ width: 1440, height: 900 })
+  })
+
+  it("should make name optional in DesignFlowConfig", () => {
+    expectTypeOf<DesignFlowConfig["name"]>().toEqualTypeOf<string | undefined>()
+  })
+
+  it("should export DEFAULT_PROJECT_NAME", () => {
+    expect(DEFAULT_PROJECT_NAME).toBe("My Designflow Project")
   })
 
   it("should accept valid DesignFlowTheme", () => {

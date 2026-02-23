@@ -13,17 +13,18 @@ export interface DevOptions {
   port: number
 }
 
-export function buildDevHtml(opts: { hasStylesCSS: boolean }): string {
+export function buildDevHtml(opts: { hasStylesCSS: boolean; projectName?: string }): string {
   const stylesLink = opts.hasStylesCSS
     ? `\n  <link rel="stylesheet" href="/styles.css" />`
     : ""
+  const title = opts.projectName ? `${opts.projectName} — DesignFlow` : "DesignFlow"
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DesignFlow</title>
+  <title>${title}</title>
   <style>
     @layer base {
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -71,7 +72,17 @@ export async function runDev(options: DevOptions): Promise<void> {
 
   // Auto-detect styles.css for Tailwind support
   const hasStylesCSS = fs.existsSync(path.join(resolvedDir, "styles.css"))
-  const html = buildDevHtml({ hasStylesCSS })
+
+  // Extract project name from flows.ts
+  let projectName: string | undefined
+  const flowsPath = path.join(resolvedDir, "flows.ts")
+  if (fs.existsSync(flowsPath)) {
+    const flowsContent = fs.readFileSync(flowsPath, "utf-8")
+    const nameMatch = flowsContent.match(/name:\s*["']([^"']+)["']/)
+    if (nameMatch) projectName = nameMatch[1]
+  }
+
+  const html = buildDevHtml({ hasStylesCSS, projectName })
 
   const server = await createServer({
     root: resolvedDir,

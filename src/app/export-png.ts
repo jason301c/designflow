@@ -5,8 +5,16 @@ import type { Node } from "@xyflow/react"
 const CANVAS_WIDTH = 2048
 const CANVAS_HEIGHT = 1536
 
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
 export interface ExportCanvasOptions {
   backgroundColor?: string
+  projectName?: string
 }
 
 function downloadDataUrl(dataUrl: string, filename: string) {
@@ -45,10 +53,11 @@ export async function exportCanvasPng(
     },
   })
 
-  downloadDataUrl(dataUrl, "designflow-canvas.png")
+  const prefix = options?.projectName ? slugify(options.projectName) : "designflow"
+  downloadDataUrl(dataUrl, `${prefix}-canvas.png`)
 }
 
-export async function exportScreenPng(screenId: string) {
+export async function exportScreenPng(screenId: string, projectName?: string) {
   const wrapper = document.querySelector<HTMLElement>(
     `[data-df-screen-id="${screenId}"]`,
   )
@@ -68,5 +77,6 @@ export async function exportScreenPng(screenId: string) {
     },
   })
 
-  downloadDataUrl(dataUrl, `designflow-${screenId}.png`)
+  const prefix = projectName ? slugify(projectName) : "designflow"
+  downloadDataUrl(dataUrl, `${prefix}-${screenId}.png`)
 }

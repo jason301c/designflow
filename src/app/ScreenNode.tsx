@@ -14,6 +14,7 @@ export type ScreenNodeData = {
   viewport?: Viewport
   colorScheme?: ColorScheme
   accentColor?: string
+  projectName?: string
 }
 
 export type ScreenNodeType = Node<ScreenNodeData, "screen">
@@ -202,7 +203,7 @@ export function ScreenNode({ data }: NodeProps<ScreenNodeType>) {
           aria-label="Export screen as PNG"
           onClick={(e) => {
             e.stopPropagation()
-            exportScreenPng(data.screenId)
+            exportScreenPng(data.screenId, data.projectName)
           }}
           style={{
             border: "none",

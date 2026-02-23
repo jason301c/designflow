@@ -130,4 +130,21 @@ describe("designflow init", () => {
     expect(loginContent).toContain("style={{")
     expect(loginContent).not.toContain("className=")
   })
+
+  it("should include default project name in scaffolded flows.ts", async () => {
+    const wireframesDir = path.join(tmpDir, "wireframes")
+    await runInit({ dir: wireframesDir })
+
+    const flowsContent = await fs.readFile(path.join(wireframesDir, "flows.ts"), "utf-8")
+    expect(flowsContent).toContain('name: "My Designflow Project"')
+  })
+
+  it("should use custom project name when --name is provided", async () => {
+    const wireframesDir = path.join(tmpDir, "wireframes")
+    await runInit({ dir: wireframesDir, name: "Cool App" })
+
+    const flowsContent = await fs.readFile(path.join(wireframesDir, "flows.ts"), "utf-8")
+    expect(flowsContent).toContain('name: "Cool App"')
+    expect(flowsContent).not.toContain("My Designflow Project")
+  })
 })

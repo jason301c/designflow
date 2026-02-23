@@ -8,9 +8,10 @@ cli
   .command("init", "Scaffold wireframes directory with example screens")
   .option("--dir <dir>", "Target directory", { default: "./wireframes" })
   .option("--tailwind", "Generate Tailwind config", { default: false })
+  .option("--name <name>", "Project name")
   .action(async (options) => {
     try {
-      await runInit({ dir: options.dir, tailwind: options.tailwind })
+      await runInit({ dir: options.dir, tailwind: options.tailwind, name: options.name })
       console.log(`Scaffolded wireframes in ${options.dir}`)
     } catch (err: any) {
       console.error(`Error: ${err.message}`)
