@@ -117,6 +117,52 @@ describe("Viewer", () => {
     expect(pill.style.background).toContain("124, 58, 237")
   })
 
+  it("should call onNavigate when a data-df-navigate element is clicked", () => {
+    function NavScreen() {
+      return (
+        <div>
+          <button data-df-navigate="dashboard">Go to Dashboard</button>
+          <span>No nav</span>
+        </div>
+      )
+    }
+    const onNavigate = vi.fn()
+    render(
+      <Viewer
+        screenId="home"
+        screenTitle="Home"
+        component={NavScreen}
+        onClose={vi.fn()}
+        onNavigate={onNavigate}
+      />
+    )
+    fireEvent.click(screen.getByText("Go to Dashboard"))
+    expect(onNavigate).toHaveBeenCalledWith("dashboard")
+  })
+
+  it("should not call onNavigate for elements without data-df-navigate", () => {
+    function NavScreen() {
+      return (
+        <div>
+          <button data-df-navigate="dashboard">Go to Dashboard</button>
+          <span>No nav</span>
+        </div>
+      )
+    }
+    const onNavigate = vi.fn()
+    render(
+      <Viewer
+        screenId="home"
+        screenTitle="Home"
+        component={NavScreen}
+        onClose={vi.fn()}
+        onNavigate={onNavigate}
+      />
+    )
+    fireEvent.click(screen.getByText("No nav"))
+    expect(onNavigate).not.toHaveBeenCalled()
+  })
+
   it("should use white pill background when no accent color", () => {
     render(
       <Viewer

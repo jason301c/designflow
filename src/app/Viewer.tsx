@@ -8,6 +8,7 @@ interface ViewerProps {
   screenTitle: string
   component: ComponentType
   onClose: () => void
+  onNavigate?: (screenId: string) => void
   accentColor?: string
   color?: string
   viewport?: Viewport
@@ -48,12 +49,14 @@ const viewportIcons: Record<Viewport, () => React.ReactElement> = {
   mobile: MobileIcon,
 }
 
-export function Viewer({ screenId, screenTitle, component: ScreenComponent, onClose, accentColor, color, viewport, projectName }: ViewerProps) {
+export function Viewer({ screenId, screenTitle, component: ScreenComponent, onClose, onNavigate, accentColor, color, viewport, projectName }: ViewerProps) {
   const [activeViewport, setActiveViewport] = useState<Viewport>(viewport ?? "desktop")
   const [activeColorScheme, setActiveColorScheme] = useState<ColorScheme>("light")
   const [activeColor, setActiveColor] = useState<string | undefined>(color)
   const [colorPickerOpen, setColorPickerOpen] = useState(false)
   const colorPickerRef = useRef<HTMLDivElement>(null)
+
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -62,6 +65,20 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [onClose])
+
+  useEffect(() => {
+    if (!onNavigate || !contentRef.current) return
+    const el = contentRef.current
+    const handleClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest<HTMLElement>("[data-df-navigate]")
+      if (target) {
+        e.preventDefault()
+        onNavigate(target.dataset.dfNavigate!)
+      }
+    }
+    el.addEventListener("click", handleClick)
+    return () => el.removeEventListener("click", handleClick)
+  }, [onNavigate])
 
   useEffect(() => {
     if (!colorPickerOpen) return
@@ -325,7 +342,7 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
           data-df-color-scheme={activeColorScheme}
           className={isDark ? "dark" : ""}
         >
-          <div data-df-screen-content style={{ colorScheme: activeColorScheme }}>
+          <div ref={contentRef} data-df-screen-content style={{ colorScheme: activeColorScheme }}>
             <ScreenComponent key={screenId} />
           </div>
         </div>
