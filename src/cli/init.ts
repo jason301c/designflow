@@ -40,6 +40,8 @@ export async function runInit(options: InitOptions): Promise<void> {
     { src: "flows.ts", dest: "flows.ts" },
     { src: "designflow.theme.ts", dest: "designflow.theme.ts" },
     { src: "CLAUDE.md", dest: "CLAUDE.md" },
+    { src: "AGENTS.md", dest: "AGENTS.md" },
+    { src: "README.md", dest: "README.md" },
   ]
 
   for (const file of filesToCopy) {

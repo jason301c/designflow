@@ -13,7 +13,29 @@ cli
     const targetDir = dir || "./wireframes"
     try {
       await runInit({ dir: targetDir, tailwind: options.tailwind, name: options.name })
-      console.log(`Scaffolded wireframes in ${targetDir}`)
+      const screenDir = `${targetDir}/screens/`
+      console.log()
+      console.log(`  DesignFlow scaffolded in ${targetDir}/`)
+      console.log()
+      console.log("  Next steps:")
+      console.log()
+      console.log("    npx designflow dev")
+      console.log()
+      console.log(`  This opens an infinite canvas at http://localhost:4800`)
+      console.log(`  showing your screens as live React thumbnails.`)
+      console.log()
+      console.log("  To add a screen:")
+      console.log(`    1. Create a .tsx file in ${screenDir}`)
+      console.log(`    2. Register it in ${targetDir}/flows.ts`)
+      console.log()
+      console.log(`  Edit ${targetDir}/designflow.theme.ts to customize colors, spacing, and more.`)
+      if (options.tailwind) {
+        console.log(`  Tailwind v4 is active — use classes like bg-primary, text-text, p-md.`)
+      }
+      console.log()
+      console.log(`  Docs: https://designflow.cc`)
+      console.log(`  AI conventions: ${targetDir}/CLAUDE.md`)
+      console.log()
     } catch (err: any) {
       console.error(`Error: ${err.message}`)
       process.exit(1)

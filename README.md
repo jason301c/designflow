@@ -1,21 +1,28 @@
-# DesignFlow
+<p align="center">
+  <img src="preview.png" alt="DesignFlow — wireframe canvas for developers" width="720" />
+</p>
 
-An open-source wireframe canvas for developers. Design screens as real React components, map navigation flows on an infinite canvas, then eject into production-ready routing code.
+<h1 align="center">DesignFlow</h1>
 
-What you design is what you ship — no translation step.
+<p align="center">
+  A Figma-like infinite canvas where every screen is a real React component.<br/>
+  Design wireframes, map navigation flows, then eject into production-ready routing code.
+</p>
+
+<p align="center">
+  <a href="https://designflow.cc">Website</a> &nbsp;|&nbsp;
+  <a href="#quick-start">Quick Start</a> &nbsp;|&nbsp;
+  <a href="#writing-screens">Docs</a> &nbsp;|&nbsp;
+  <a href="https://github.com/jason301c/designflow">GitHub</a>
+</p>
+
+---
 
 ## Why
 
-AI coding tools generate React screens fast, but there's no way to see them all at once, visualize navigation, or test interactions in context. Figma gives you spatial design but outputs assets, not code.
+AI coding tools generate React screens fast — but there's no way to see them all at once, visualize navigation, or test interactions in context. Figma gives you spatial design but outputs assets, not code.
 
-DesignFlow bridges the gap: a Figma-like canvas where every screen is a live React component.
-
-## Install
-
-```bash
-# TODO: not yet published to npm
-npm install designflow
-```
+DesignFlow bridges the gap: **what you design is what you ship.**
 
 ## Quick Start
 
@@ -32,10 +39,11 @@ This creates a `wireframes/` directory:
 ```
 wireframes/
 ├── screens/
-│   ├── Login.tsx
-│   ├── Dashboard.tsx
+│   ├── Explore.tsx
+│   ├── Repo.tsx
 │   ├── Profile.tsx
-│   ├── Settings.tsx
+│   ├── Issues.tsx
+│   ├── Pullrequest.tsx
 │   └── Notifications.tsx
 ├── flows.ts
 ├── designflow.theme.ts
@@ -57,9 +65,11 @@ export default function Login() {
 }
 ```
 
-- `data-df-navigate="screenId"` marks navigation triggers — these render as flow arrows on the canvas
-- Local state (`useState`, modals, dropdowns) works normally inside the viewer
-- Dark mode works automatically when you use `var(--df-*)` tokens
+| Convention | Description |
+|---|---|
+| `data-df-navigate="screenId"` | Marks navigation triggers — renders as flow arrows on the canvas |
+| `useState`, modals, dropdowns | Local state works normally inside the viewer |
+| `var(--df-*)` tokens | Dark mode works automatically when you use theme tokens |
 
 ## Defining Flows
 
@@ -69,6 +79,7 @@ export default function Login() {
 import type { DesignFlowConfig } from "designflow"
 
 const config: DesignFlowConfig = {
+  name: "My App",
   screens: {
     login: {
       title: "Login",
@@ -140,12 +151,12 @@ Optionally use Tailwind v4 classes in your screens:
 npx designflow init --tailwind
 ```
 
-This creates a `styles.css` with an `@theme` block that maps DesignFlow tokens to Tailwind's namespace:
+This creates a `styles.css` with an `@theme inline` block mapping DesignFlow tokens to Tailwind's namespace:
 
 ```css
 @import "tailwindcss";
 
-@theme {
+@theme inline {
   --color-primary: var(--df-primary);
   --color-secondary: var(--df-secondary);
   --radius-md: var(--df-radius-md);
@@ -154,7 +165,9 @@ This creates a `styles.css` with an `@theme` block that maps DesignFlow tokens t
 }
 ```
 
-Then use classes like `bg-primary`, `text-secondary`, `p-md`, `rounded-lg`, `shadow-sm` alongside or instead of inline `var(--df-*)` styles. Dark mode and theme changes cascade automatically.
+Then use classes like `bg-primary`, `text-secondary`, `p-md`, `rounded-lg`, `shadow-sm`. Dark mode cascades automatically.
+
+> **Note:** The `@theme` block must use `@theme inline`, not plain `@theme`. Without `inline`, Tailwind v4 generates `@property` declarations that eagerly resolve `var()` at `:root`, breaking the dark mode cascade.
 
 ## Canvas Features
 
@@ -166,35 +179,36 @@ Then use classes like `bg-primary`, `text-secondary`, `p-md`, `rounded-lg`, `sha
 - **Viewport presets** — toggle desktop (1440x900), tablet (768x1024), mobile (390x844) per screen
 - **Per-screen dark mode** — toggle light/dark per screen to preview both variants
 - **Canvas settings** — dark/light canvas, accent colors, grid/dots/blank background, line styles
+- **PNG export** — export the full canvas or individual screens at full resolution
 - **Drag-to-reorder** — positions persist to `flows.ts`
 
 ## CLI
 
 ```
-designflow init [--dir ./path] [--tailwind]   # Scaffold wireframes directory
-designflow dev  [--dir ./path] [--port 4800]  # Start canvas dev server
+designflow init [--dir ./path] [--tailwind] [--name "My App"]   # Scaffold wireframes directory
+designflow dev  [--dir ./path] [--port 4800]                    # Start canvas dev server
 ```
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Canvas | React Flow v12 |
-| Dev server | Vite |
-| Screens | React 19 |
-| Build | tsup (ESM + CJS) |
-| Styling | Tailwind v4 (optional), CSS custom properties |
-| Testing | Vitest, Testing Library, Playwright |
 
 ## Development
 
 ```bash
 pnpm install
-pnpm test          # Run all tests
+pnpm test          # Run all tests (240+ passing)
 pnpm test:watch    # Watch mode
 pnpm dev           # Run the dev server locally
 pnpm build         # Build with tsup
 ```
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Canvas | React Flow v12 (`@xyflow/react`) |
+| Dev server | Vite 7 |
+| Screens | React 19 |
+| Build | tsup (ESM + CJS) |
+| Styling | Tailwind v4 (optional), CSS custom properties |
+| Testing | Vitest, Testing Library, Playwright |
 
 ## License
 
