@@ -58,6 +58,15 @@ describe("Toolbar", () => {
     expect(screen.getByTestId("toolbar")).toBeInTheDocument()
   })
 
+  it("should tint toolbar border with accent color", () => {
+    const onChange = vi.fn()
+    const settings = { ...defaultSettings, accentColor: "#dc2626" }
+    render(<Toolbar settings={settings} onSettingsChange={onChange} />)
+    const toolbar = screen.getByTestId("toolbar")
+    // #dc2626 → rgb(220, 38, 38)
+    expect(toolbar.style.borderColor).toContain("220, 38, 38")
+  })
+
   describe("settings popover", () => {
     it("should render settings button", () => {
       const onChange = vi.fn()

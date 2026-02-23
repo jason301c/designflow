@@ -1,4 +1,4 @@
-import { ReactFlow, MiniMap, Background, BackgroundVariant, useNodesState, useEdgesState, useReactFlow, MarkerType } from "@xyflow/react"
+import { ReactFlow, MiniMap, Background, BackgroundVariant, useNodesState, useEdgesState, useReactFlow } from "@xyflow/react"
 import type { Node, Edge } from "@xyflow/react"
 import { useCallback, useEffect, type ComponentType } from "react"
 import { ScreenNode } from "./ScreenNode"
@@ -121,7 +121,6 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
   }, [])
 
   const isDarkCanvas = settings?.appearance === "dark"
-  const accentColor = settings?.accentColor ?? "#94a3b8"
 
   return (
     <div style={{ width: "100%", height: "100vh", background: isDarkCanvas ? "#000000" : undefined }}>
@@ -133,9 +132,7 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
         onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        defaultEdgeOptions={{
-          markerEnd: { type: MarkerType.ArrowClosed, color: accentColor },
-        }}
+        defaultEdgeOptions={{}}
         onInit={(instance) => instance.fitView()}
       >
         <FocusHandler focusNodeId={focusNodeId} />
@@ -144,6 +141,7 @@ export function Canvas({ config, screens, onScreenSelect, focusNodeId, inferredE
           <Background
             variant={bgVariantMap[settings.backgroundStyle]}
             color={isDarkCanvas ? "#222" : "#e2e8f0"}
+            style={{ opacity: 0.4 }}
           />
         )}
         <Toolbar settings={settings} onSettingsChange={onSettingsChange} />

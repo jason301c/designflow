@@ -68,6 +68,7 @@ export function App({ config, screens, inferredEdges }: AppProps) {
             screenTitle={viewingConfig.title}
             component={screens[viewingScreen]}
             onClose={handleCloseViewer}
+            accentColor={settings.accentColor}
           />
         )}
       </div>

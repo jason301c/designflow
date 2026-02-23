@@ -101,4 +101,33 @@ describe("Viewer", () => {
     const overlay = screen.getByTestId("viewer-overlay")
     expect(overlay).toBeInTheDocument()
   })
+
+  it("should tint the viewer pill border with accent color", () => {
+    render(
+      <Viewer
+        screenId="test"
+        screenTitle="Test Screen"
+        component={TestScreen}
+        onClose={vi.fn()}
+        accentColor="#7c3aed"
+      />
+    )
+    const pill = screen.getByTestId("viewer-pill")
+    // #7c3aed → rgb(124, 58, 237)
+    expect(pill.style.borderColor).toContain("124, 58, 237")
+  })
+
+  it("should use default border when no accent color provided", () => {
+    render(
+      <Viewer
+        screenId="test"
+        screenTitle="Test Screen"
+        component={TestScreen}
+        onClose={vi.fn()}
+      />
+    )
+    const pill = screen.getByTestId("viewer-pill")
+    // default: #e2e8f0 → rgb(226, 232, 240)
+    expect(pill.style.borderColor).toContain("226, 232, 240")
+  })
 })

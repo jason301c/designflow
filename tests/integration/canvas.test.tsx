@@ -188,19 +188,11 @@ describe("Canvas", () => {
       expect(edge.data.lineStyle).toBe("dashed")
     })
 
-    it("should set marker color to accent color", () => {
-      const settings = { ...defaultSettings, accentColor: "#059669" }
-      render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} settings={settings} onSettingsChange={vi.fn()} />)
+    it("should not use arrow markers on edges", () => {
+      render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} settings={defaultSettings} onSettingsChange={vi.fn()} />)
       const rfEl = screen.getByTestId("react-flow")
       const opts = JSON.parse(rfEl.getAttribute("data-default-edge-options") || "{}")
-      expect(opts.markerEnd.color).toBe("#059669")
-    })
-
-    it("should use default marker color when no settings", () => {
-      render(<Canvas config={sampleConfig} onScreenSelect={vi.fn()} />)
-      const rfEl = screen.getByTestId("react-flow")
-      const opts = JSON.parse(rfEl.getAttribute("data-default-edge-options") || "{}")
-      expect(opts.markerEnd.color).toBe("#94a3b8")
+      expect(opts.markerEnd).toBeUndefined()
     })
   })
 })

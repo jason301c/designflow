@@ -49,7 +49,7 @@ export function Toolbar({ settings, onSettingsChange }: ToolbarProps) {
         gap: 6,
         alignItems: "center",
         background: "#fff",
-        border: "1px solid #e2e8f0",
+        border: `1px solid ${settings?.accentColor ?? "#e2e8f0"}`,
         borderRadius: 9999,
         padding: "4px 6px",
         fontSize: 13,

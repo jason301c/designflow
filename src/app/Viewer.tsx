@@ -5,9 +5,10 @@ interface ViewerProps {
   screenTitle: string
   component: ComponentType
   onClose: () => void
+  accentColor?: string
 }
 
-export function Viewer({ screenId, screenTitle, component: ScreenComponent, onClose }: ViewerProps) {
+export function Viewer({ screenId, screenTitle, component: ScreenComponent, onClose, accentColor }: ViewerProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose()
@@ -28,6 +29,7 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
     >
       {/* Floating pill header */}
       <div
+        data-testid="viewer-pill"
         style={{
           position: "absolute",
           top: 16,
@@ -40,7 +42,7 @@ export function Viewer({ screenId, screenTitle, component: ScreenComponent, onCl
           padding: "6px 8px 6px 16px",
           background: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(8px)",
-          border: "1px solid #e2e8f0",
+          border: `1px solid ${accentColor ?? "#e2e8f0"}`,
           borderRadius: 9999,
         }}
       >
