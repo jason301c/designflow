@@ -42,7 +42,7 @@ const sampleConfig: DesignFlowConfig = {
 
 describe("Share button", () => {
   beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true, slug: "abc123", url: "https://designflow.cc/s/abc123" }) })))
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({ ok: true, slug: "abc123", url: "https://shares.designflow.cc/abc123" }) })))
     vi.stubGlobal("navigator", { clipboard: { writeText: vi.fn(() => Promise.resolve()) } })
   })
 
@@ -96,7 +96,7 @@ describe("Share button", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("export-toast")).toBeInTheDocument()
-      expect(screen.getByText(/designflow\.cc\/s\/abc123/)).toBeInTheDocument()
+      expect(screen.getByText(/shares\.designflow\.cc\/abc123/)).toBeInTheDocument()
       expect(screen.getByText(/copied/i)).toBeInTheDocument()
     })
 

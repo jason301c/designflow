@@ -438,7 +438,7 @@ function LogoBadge({ dark, exportMode, projectName }: { dark?: boolean; exportMo
                   if (!res.ok) throw new Error(data.error || "Share failed")
 
                   // Copy URL to clipboard
-                  const url = data.url || `https://designflow.cc/s/${data.slug}`
+                  const url = data.url || `https://shares.designflow.cc/${data.slug}`
                   await navigator.clipboard.writeText(url)
                   setToast({ message: `Shared! ${url} (copied)`, type: "success" })
                   setTimeout(() => setToast(null), 5000)
