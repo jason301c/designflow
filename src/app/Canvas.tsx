@@ -255,6 +255,7 @@ function ExportBanner({ dark }: { dark?: boolean }) {
 function LogoBadge({ dark, exportMode, projectName }: { dark?: boolean; exportMode?: boolean; projectName?: string }) {
   const [aboutOpen, setAboutOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
 
   useEffect(() => {
@@ -387,6 +388,90 @@ function LogoBadge({ dark, exportMode, projectName }: { dark?: boolean; exportMo
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
               {exporting ? "Exporting..." : "Export"}
+            </button>
+            <div style={{ width: 1, height: 16, background: dark ? "#444" : "#e2e8f0" }} />
+            <button
+              data-testid="share-button"
+              disabled={sharing || exporting}
+              onClick={async () => {
+                setSharing(true)
+                setToast(null)
+                try {
+                  // Open popup for auth
+                  const origin = window.location.origin
+                  const popup = window.open(
+                    `https://designflow.cc/auth/share-token?origin=${encodeURIComponent(origin)}`,
+                    "designflow-share",
+                    "width=500,height=600,popup=yes"
+                  )
+                  if (!popup) {
+                    setToast({ message: "Please allow popups to share", type: "error" })
+                    setTimeout(() => setToast(null), 5000)
+                    return
+                  }
+
+                  // Wait for token via postMessage
+                  const token = await new Promise<string>((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                      window.removeEventListener("message", handler)
+                      reject(new Error("Share authentication timed out"))
+                    }, 120000) // 2 min timeout
+
+                    function handler(event: MessageEvent) {
+                      if (event.origin !== "https://designflow.cc") return
+                      if (event.data?.type === "df-share-token" && event.data?.token) {
+                        clearTimeout(timeout)
+                        window.removeEventListener("message", handler)
+                        resolve(event.data.token)
+                      }
+                    }
+                    window.addEventListener("message", handler)
+                  })
+
+                  // Upload via dev server endpoint
+                  const res = await fetch("/__designflow/share", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token }),
+                  })
+                  const data = await res.json()
+                  if (!res.ok) throw new Error(data.error || "Share failed")
+
+                  // Copy URL to clipboard
+                  const url = data.url || `https://designflow.cc/s/${data.slug}`
+                  await navigator.clipboard.writeText(url)
+                  setToast({ message: `Shared! ${url} (copied)`, type: "success" })
+                  setTimeout(() => setToast(null), 5000)
+                } catch (err: any) {
+                  setToast({ message: err.message || "Share failed", type: "error" })
+                  setTimeout(() => setToast(null), 5000)
+                } finally {
+                  setSharing(false)
+                }
+              }}
+              style={{
+                background: "transparent",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "2px 8px",
+                borderRadius: 9999,
+                fontSize: 12,
+                fontWeight: 500,
+                color: pillColor,
+                cursor: sharing ? "wait" : "pointer",
+                opacity: sharing ? 0.5 : 1,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+              {sharing ? "Sharing..." : "Share"}
             </button>
           </>
         )}

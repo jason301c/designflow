@@ -266,6 +266,66 @@ export function designflowPlugin(options: DesignflowPluginOptions): Plugin {
           res.end(JSON.stringify({ error: String(err) }))
         })
       })
+
+      // API middleware for cloud sharing
+      server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
+        if (req.url !== "/__designflow/share" || req.method !== "POST") {
+          return next()
+        }
+
+        let body = ""
+        req.on("data", (chunk: Buffer) => { body += chunk.toString() })
+        req.on("end", () => {
+          ;(async () => {
+            const { token } = JSON.parse(body) as { token: string }
+            if (!token) {
+              res.writeHead(400, { "Content-Type": "application/json" })
+              res.end(JSON.stringify({ error: "Missing token" }))
+              return
+            }
+
+            // Export to temp file
+            const tmpPath = path.join(os.tmpdir(), `designflow-share-${Date.now()}.html`)
+
+            try {
+              if (!_runExport) {
+                const mod = await import("../cli/export")
+                _runExport = mod.runExport
+              }
+              await _runExport({ dir, output: tmpPath, silent: true })
+
+              // Read the exported HTML
+              const html = await fs.readFile(tmpPath, "utf-8")
+
+              // Extract project name from flows.ts
+              const flowsSource = await fs.readFile(path.resolve(dir, "flows.ts"), "utf-8")
+              const nameMatch = flowsSource.match(/name:\s*["']([^"']+)["']/)
+              const projectName = nameMatch?.[1] || "Untitled"
+
+              // POST to cloud
+              const cloudRes = await fetch("https://designflow.cc/api/share", {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ html, name: projectName }),
+              })
+
+              const data = await cloudRes.json()
+
+              res.writeHead(cloudRes.status, { "Content-Type": "application/json" })
+              res.end(JSON.stringify(data))
+            } finally {
+              // Clean up temp file
+              await fs.unlink(tmpPath).catch(() => {})
+            }
+          })().catch((err: any) => {
+            res.writeHead(500, { "Content-Type": "application/json" })
+            res.end(JSON.stringify({ error: String(err) }))
+          })
+        })
+      })
     },
   }
 }
