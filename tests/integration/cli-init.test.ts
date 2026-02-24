@@ -27,6 +27,17 @@ describe("designflow init", () => {
     expect(screensStat.isDirectory()).toBe(true)
   })
 
+  it("should scaffold public/ directory with sample asset", async () => {
+    const wireframesDir = path.join(tmpDir, "wireframes")
+    await runInit({ dir: wireframesDir })
+
+    const publicStat = await fs.stat(path.join(wireframesDir, "public"))
+    expect(publicStat.isDirectory()).toBe(true)
+
+    const svgExists = await fs.access(path.join(wireframesDir, "public/github.svg")).then(() => true).catch(() => false)
+    expect(svgExists).toBe(true)
+  })
+
   it("should scaffold all screen files", async () => {
     const wireframesDir = path.join(tmpDir, "wireframes")
     await runInit({ dir: wireframesDir })

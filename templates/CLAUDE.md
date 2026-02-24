@@ -6,6 +6,7 @@ This directory contains wireframe screens visualized on an infinite canvas via D
 ```
 wireframes/
 ├── screens/          # React component screens (.tsx)
+├── public/           # Static assets — images, fonts, icons (served at /)
 ├── flows.ts          # Screen metadata + navigation edges
 ├── designflow.theme.ts  # Design tokens → CSS custom properties
 ├── styles.css        # (optional) Tailwind v4 integration
@@ -58,6 +59,12 @@ Dark mode works automatically when you use `var(--df-*)` tokens. DesignFlow gene
 ```
 
 When a screen is toggled to dark, its wrapper gets `data-df-color-scheme="dark"`, and all descendant `var(--df-*)` references resolve to dark values. **No code changes needed** — just don't hardcode colors.
+
+### Images & Static Assets
+
+- **`public/` directory** — files here are served at `/`. Use `<img src="/hero.png" />` to reference them. No import needed.
+- **Direct imports** — `import logo from "./logo.png"` in a screen file also works. Vite handles bundling.
+- Prefer `public/` for assets shared across screens, and direct imports for screen-specific assets.
 
 ## Registering Screens in `flows.ts`
 

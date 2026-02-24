@@ -18,6 +18,7 @@ wireframes/
 │   ├── Explore.tsx
 │   ├── Repo.tsx
 │   └── ...
+├── public/               # Static assets (images, fonts, etc.)
 ├── flows.ts              # Screen layout + navigation edges
 ├── designflow.theme.ts   # Design tokens (colors, spacing, radii, shadows)
 ├── styles.css            # Tailwind v4 integration (optional)
@@ -61,6 +62,25 @@ screens: {
 - **`var(--df-*)`** — theme tokens for colors, spacing, radii, shadows, fonts. Use these instead of hardcoding values. Dark mode works automatically.
 - **Screen IDs** — lowercase filename without `.tsx`. `Profile.tsx` → `profile`. Must match exactly in `flows.ts` and `data-df-navigate`.
 - **Local state** — `useState`, modals, dropdowns, and tabs all work normally inside the viewer.
+
+## Images & Static Assets
+
+Place images, fonts, and other static files in the `public/` directory. Reference them with absolute paths:
+
+```tsx
+<img src="/hero.png" alt="Hero" />
+<img src="/icons/arrow.svg" alt="Arrow" />
+```
+
+You can also import assets directly in your screen components — Vite will bundle them automatically:
+
+```tsx
+import logo from "./logo.png"
+
+export default function Home() {
+  return <img src={logo} alt="Logo" />
+}
+```
 
 ## Theming
 

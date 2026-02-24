@@ -45,6 +45,12 @@ const config: DesignFlowConfig = {
       viewport: "mobile",
       color: "#ffcccc",
     },
+    github: {
+      title: "GitHub",
+      file: "./screens/Github.tsx",
+      position: { x: -630, y: 350 },
+      viewport: "mobile",
+    },
   },
 
   edges: [

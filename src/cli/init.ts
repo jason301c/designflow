@@ -29,6 +29,7 @@ export async function runInit(options: InitOptions): Promise<void> {
 
   // Create directory structure
   await fs.mkdir(path.join(dir, "screens"), { recursive: true })
+  await fs.mkdir(path.join(dir, "public"), { recursive: true })
 
   // Copy template files
   const screenDir = tailwind ? "screens-tailwind" : "screens"
@@ -42,6 +43,7 @@ export async function runInit(options: InitOptions): Promise<void> {
     { src: "CLAUDE.md", dest: "CLAUDE.md" },
     { src: "AGENTS.md", dest: "AGENTS.md" },
     { src: "README.md", dest: "README.md" },
+    { src: "public/github.svg", dest: "public/github.svg" },
   ]
 
   for (const file of filesToCopy) {
