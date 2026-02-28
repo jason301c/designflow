@@ -6,7 +6,7 @@ import { build } from "vite"
 import tailwindcss from "@tailwindcss/vite"
 import { designflowPlugin } from "../runtime/vite-plugin"
 import { buildDevHtml } from "./dev"
-import { buildCoreAliases } from "./resolve"
+import { buildCoreAliases, linkFilesystemDeps } from "./resolve"
 import type { Plugin } from "vite"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -152,6 +152,9 @@ export async function runExport(options: ExportOptions): Promise<void> {
   // Map core packages to designflow's bundled copies
   const coreAliases = buildCoreAliases()
 
+  // Create per-package symlinks for deps that non-Vite resolvers need
+  const cleanupDeps = linkFilesystemDeps(resolvedDir)
+
   // Use a temp dir for both the input HTML and build output
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "designflow-export-"))
 
@@ -221,6 +224,7 @@ export async function runExport(options: ExportOptions): Promise<void> {
     if (!hadExistingHtml && fs.existsSync(wireframesHtml)) {
       try { fs.unlinkSync(wireframesHtml) } catch {}
     }
+    cleanupDeps()
     try { fs.rmSync(tmpDir, { recursive: true, force: true }) } catch {}
   }
 }

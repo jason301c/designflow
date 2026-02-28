@@ -4,7 +4,7 @@ import { fileURLToPath } from "url"
 import { createServer } from "vite"
 import tailwindcss from "@tailwindcss/vite"
 import { designflowPlugin } from "../runtime/vite-plugin"
-import { buildCoreAliases } from "./resolve"
+import { buildCoreAliases, linkFilesystemDeps } from "./resolve"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -89,6 +89,13 @@ export async function runDev(options: DevOptions): Promise<void> {
   // Map core packages to designflow's bundled copies so user-installed
   // packages in wireframes/node_modules don't cause duplicate React, etc.
   const coreAliases = buildCoreAliases()
+
+  // Create per-package symlinks for deps that non-Vite resolvers need
+  // from the filesystem (e.g. tailwindcss for @tailwindcss/vite)
+  const cleanupDeps = linkFilesystemDeps(resolvedDir)
+  process.on("exit", cleanupDeps)
+  process.on("SIGINT", () => { cleanupDeps(); process.exit() })
+  process.on("SIGTERM", () => { cleanupDeps(); process.exit() })
 
   const server = await createServer({
     root: resolvedDir,
